@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Daily Rosary</title>
+<meta name="color-scheme" content="light dark">
+<style>
+/* ---------- theme ---------- */
+:root{color-scheme:light;--bg:#eeece5;--card:#f8f6f0;--ink:#24211c;--muted:#5a554b;--gold:#8a5a00;--off:#d9d4c6;--line:#b3ac9a;--accent:#7b1e2b;--on-accent:#fbf8f1;
+  --sans:system-ui,-apple-system,"SF Pro Text","Segoe UI",Roboto,sans-serif;--sz:0;
+  padding:env(safe-area-inset-top,0px) 0 0}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;--bg:#171513;--card:#211e1b;--ink:#ece6d8;--muted:#b9b0a0;--gold:#e0b861;--off:#3d3731;--line:#585046;--accent:#d4737c;--on-accent:#171513}
+  :root:not([data-theme="light"]) .art svg,:root:not([data-theme="light"]) .mimg{filter:brightness(.88)}}
+:root[data-theme="dark"]{color-scheme:dark;--bg:#171513;--card:#211e1b;--ink:#ece6d8;--muted:#b9b0a0;--gold:#e0b861;--off:#3d3731;--line:#585046;--accent:#d4737c;--on-accent:#171513}
+:root[data-theme="dark"] .art svg,:root[data-theme="dark"] .mimg{filter:brightness(.88)}
+
+/* ---------- base ---------- */
+*{box-sizing:border-box;touch-action:manipulation}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--ink);font:20px var(--sans);-webkit-tap-highlight-color:transparent;display:flex;flex-direction:column}
+[hidden]{display:none!important}
+button{font-family:var(--sans)}
+button,.beads{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+.screen{max-width:540px;width:100%;flex:1;min-height:0;margin:0 auto;padding:0 18px;display:flex;flex-direction:column}
+.label{font:600 15px/1.2 var(--sans);letter-spacing:.04em;color:var(--muted)}
+.btn{font:600 19px var(--sans);border:0;border-radius:14px;padding:16px 20px;background:var(--accent);color:var(--on-accent);cursor:pointer}
+.btn.ghost{background:none;color:var(--ink);border:1px solid var(--line)}
+.btn:disabled{opacity:.4}
+.hap{position:fixed;left:-99px;width:1px;height:1px;overflow:hidden;opacity:0}
+
+/* ---------- home ---------- */
+.home{overflow-y:auto;padding-top:28px;padding-bottom:24px}
+.home h1{font-size:40px;line-height:1.08;margin:10px 0 4px;font-weight:700}
+.home .set{color:var(--accent);font-style:normal;font-weight:700}
+.tabs{display:flex;flex-wrap:wrap;gap:6px;margin:18px 0 14px}
+.tab{font:600 16px var(--sans);padding:10px 14px;border-radius:99px;border:1px solid var(--line);background:none;color:var(--muted);cursor:pointer}
+.tab .today{color:var(--gold)}
+.tab[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.tab[aria-pressed="true"] .today{color:var(--bg)}
+.mlist{list-style:none;margin:0;padding:0;border-top:1px solid var(--line)}
+.mlist li{display:flex;align-items:baseline;gap:14px;padding:12px 0;border-bottom:1px solid var(--line)}
+.mlist b{flex:none;width:22px;font-size:19px;color:var(--gold)}
+.mlist span{font-size:24px;font-weight:600}
+.begin{width:100%;margin-top:22px}
+
+/* ---------- prayer screen: header ---------- */
+.run{padding-top:10px}
+.head{display:flex;gap:14px}
+.side{position:relative;flex:1;min-width:0}
+.art{position:absolute;inset:0;overflow:hidden;border-radius:16px;border:1px solid var(--line);background:var(--card)}
+.art svg{display:block;width:100%;height:100%;overflow:visible}
+.x{position:absolute;top:5px;right:5px;z-index:2;width:44px;height:44px;padding:0;border:0;border-radius:50%;background:rgba(20,16,12,.55);color:#fff;font:500 20px/1 var(--sans);cursor:pointer}
+#where{position:absolute;left:8px;bottom:8px;z-index:2;padding:6px 10px;border-radius:99px;background:rgba(20,16,12,.6);color:#fff}
+#where:empty{display:none}
+
+/* ---------- rosary (small, and zoomed) ---------- */
+.beads{position:relative;flex:none;height:130px;aspect-ratio:320/450;cursor:pointer}
+.beads svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.hint{position:absolute;top:0;right:-6px;font:500 15px var(--sans);color:var(--muted)}
+.hint::before{content:"\2922"}
+.str{fill:none;stroke:var(--line);stroke-width:1.5}
+.cross{stroke:var(--gold);stroke-width:5;stroke-linecap:round}
+.bead{fill:var(--off);stroke:var(--line);stroke-width:1;transition:fill .35s,stroke .35s}
+.bead.done{fill:var(--gold);stroke:var(--gold)}
+.bead.cur{fill:var(--accent);stroke:var(--accent)}
+.run:not(.zoom) .bead.cur{stroke-width:9}
+.run:not(.zoom) .bead.cur.grp{stroke-width:4}
+.zoom .head{flex:1;min-height:0}
+.zoom .side,.zoom .card,.zoom .dots{display:none}
+.zoom .beads{flex:1;height:auto;aspect-ratio:auto}
+.zoom .hint{top:8px;right:12px;font-size:24px}
+.zoom .bead{transform:scale(1.25);transform-box:fill-box;transform-origin:center}
+.zoom .bead.cur{transform:scale(1.6)}
+.zhelp{display:none;margin:0 0 8px;font:600 17px/1.3 var(--sans);color:var(--muted);text-align:center}
+.zoom .zhelp{display:block}
+.zoom .hint::before{content:"\2921"}
+
+/* ---------- card ---------- */
+.card{flex:1;min-height:0;overflow-y:auto;margin-top:6px;padding:14px 16px;background:var(--card);border:1px solid var(--line);border-radius:18px}
+.phase{color:var(--gold)}
+.card h2{margin:4px 0 8px;font-size:clamp(22px,calc(var(--fs,20px)*1.15),32px);line-height:1.1;font-weight:700}
+.card h2.h2b{margin-top:16px}
+.prayer{margin:0;font-size:var(--fs,calc(21px + var(--sz,0)*2px));line-height:1.4;white-space:pre-line}
+.prayer.lg{line-height:1.38}
+.prayer.note{color:var(--muted)}
+
+/* mystery block: number, name (drop caps), description */
+.myst{margin:10px 0 14px;padding:2px 0 2px 12px;border-left:3px solid var(--accent);font-family:var(--sans)}
+.myst-num{margin:0 0 3px;font-size:16px;font-weight:600;line-height:1.3;letter-spacing:.02em;color:var(--muted)}
+.myst-name{margin:0 0 6px;font-size:17px;font-weight:600;line-height:1.4;letter-spacing:.07em;text-transform:uppercase}
+.myst-name .dc{font-size:1.45em;letter-spacing:.05em}
+.myst-desc{margin:8px 0 0;font-size:max(17px,calc(var(--fs,20px)*.8));line-height:1.4}
+
+/* ---------- bead bar + controls ---------- */
+.dots{flex:none;display:flex;justify-content:center;gap:8px;padding:12px 4px 10px}
+.dots button{flex:1 1 0;max-width:30px;aspect-ratio:1;padding:0;border-radius:50%;background:var(--off);border:2px solid var(--line);cursor:pointer;transition:background .3s,transform .3s,border-color .3s}
+.dots .on{background:var(--gold);border-color:var(--gold)}
+.dots .now{background:var(--accent);border-color:var(--accent);transform:scale(1.2);box-shadow:0 2px 8px rgba(0,0,0,.25)}
+.nav{flex:none;display:flex;gap:10px;padding:8px 0 10px}
+.nav .btn{padding:13px 16px}
+.nav .ghost{flex:0 0 30%}
+.nav .btn:last-child{flex:1}
+
+/* ---------- tab bar ---------- */
+.tabbar{flex:none;display:flex;gap:2px;background:var(--card);border-top:1px solid var(--line);padding:0 6px env(safe-area-inset-bottom,0px)}
+.tb{flex:1;min-height:62px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:6px 2px;border:0;background:none;color:var(--muted);font:600 14px/1.1 var(--sans);cursor:pointer}
+.tb svg{width:27px;height:27px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.tb .aa{font:700 22px/27px var(--sans);height:27px}
+.tb[aria-current="page"]{color:var(--accent);box-shadow:inset 0 3px 0 var(--accent)}
+.tb[aria-expanded="true"]{color:var(--ink)}
+
+/* ---------- display panel ---------- */
+.scrim{position:fixed;inset:0;z-index:20;background:rgba(0,0,0,.35)}
+.panel{position:fixed;z-index:21;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 72px);width:min(calc(100% - 28px),500px);padding:16px;border-radius:18px;background:var(--card);border:1px solid var(--line);box-shadow:0 10px 30px rgba(0,0,0,.3);font-family:var(--sans)}
+.prow{display:flex;align-items:center;gap:10px;margin:0 0 14px}
+.prow:last-child{margin-bottom:0}
+.prow .label{flex:1;font-size:18px;color:var(--ink)}
+.seg{display:flex;gap:6px}
+.seg button{min-width:56px;min-height:48px;padding:0 14px;border-radius:12px;border:1px solid var(--line);background:none;color:var(--ink);font:600 18px var(--sans);cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.seg button:disabled{opacity:.35}
+
+/* ---------- mysteries and closing prayers pages ---------- */
+.pg{overflow-y:auto;padding-top:26px;padding-bottom:24px}
+.pg h1{font-size:34px;line-height:1.1;margin:0 0 4px;font-weight:700}
+.pg .tabs{margin:14px 0 4px}
+.mcard{margin:16px 0 0;background:var(--card);border:1px solid var(--line);border-radius:18px;overflow:hidden}
+.mcard svg{display:block;width:100%;height:auto;aspect-ratio:280/130}
+.mb{padding:14px 16px 18px}
+.mb .label{display:block}
+.mb h2{margin:6px 0 8px;font-size:calc(24px + var(--sz,0)*1px);line-height:1.15;font-weight:700}
+.mb p{margin:0;font-size:calc(19px + var(--sz,0)*2px);line-height:1.5}
+.mb p.prayer{font-size:calc(21px + var(--sz,0)*2px);line-height:1.45}
+</style>
+</head>
+<body>
+<label class="hap" aria-hidden="true"><input type="checkbox" switch tabindex="-1" id="hap"></label>
+
+<main class="screen home" id="home">
+  <div class="label" id="date"></div>
+  <h1>Today's<br>mysteries are <span class="set" id="setName"></span></h1>
+  <div class="tabs" id="tabs" role="group" aria-label="Choose mysteries"></div>
+  <ol class="mlist" id="mlist"></ol>
+  <button class="btn begin" id="begin">Begin the Rosary</button>
+</main>
+
+<main class="screen run" id="run" hidden>
+  <div class="zhelp">Tap a bead to jump there. Tap anywhere else to close.</div>
+  <div class="head">
+    <div class="beads" id="beads" role="button" tabindex="0" aria-label="Enlarge or shrink the rosary">
+      <svg id="svg" viewBox="0 0 320 450" aria-hidden="true"></svg>
+      <span class="hint"></span>
+    </div>
+    <div class="side">
+      <div class="art" id="art"><svg id="artsvg" viewBox="0 0 280 130" aria-hidden="true"></svg></div>
+      <button class="x" id="exit" aria-label="Exit">&#10005;</button>
+      <span class="label" id="where"></span>
+    </div>
+  </div>
+  <section class="card" id="card" aria-live="polite">
+    <div class="label phase" id="phase"></div>
+    <div class="myst" id="myst" hidden>
+      <div class="myst-num" id="mnum"></div>
+      <div class="myst-name" id="mname"></div>
+      <p class="myst-desc" id="mdesc"></p>
+    </div>
+    <h2 id="title"></h2>
+    <p class="prayer" id="text"></p>
+    <h2 class="h2b" id="title2" hidden></h2>
+    <p class="prayer" id="text2" hidden></p>
+  </section>
+  <div class="dots" id="dots" hidden></div>
+  <div class="nav">
+    <button class="btn ghost" id="back">Back</button>
+    <button class="btn" id="next">Next</button>
+  </div>
+</main>
+
+<main class="screen pg" id="mysteries" hidden>
+  <h1 id="mtitle"></h1>
+  <div class="tabs" id="mtabs" role="group" aria-label="Choose mysteries"></div>
+  <div id="mcards"></div>
+</main>
+
+<main class="screen pg" id="closing" hidden>
+  <h1>Closing Prayers</h1>
+  <div id="cprayers"></div>
+</main>
+
+<nav class="tabbar" aria-label="Sections">
+  <button class="tb" data-v="rosary"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="5.5"/><path d="M12 13.5V22M8.5 17h7"/></svg>Rosary</button>
+  <button class="tb" data-v="mysteries"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5.5C6.5 4 9.5 4.3 12 6c2.5-1.7 5.5-2 9-.5V19c-3.5-1.5-6.5-1.2-9 .5-2.5-1.7-5.5-2-9-.5z"/><path d="M12 6v13.5"/></svg>Mysteries</button>
+  <button class="tb" data-v="closing" aria-label="Closing Prayers"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="M9 11h7M9 15h7"/></svg>Closing</button>
+  <button class="tb" id="disp" aria-expanded="false" aria-controls="panel"><span class="aa" aria-hidden="true">Aa</span>Display</button>
+</nav>
+<div class="scrim" id="scrim" hidden></div>
+<div class="panel" id="panel" role="dialog" aria-label="Display settings" hidden>
+  <div class="prow"><span class="label">Text size</span><div class="seg"><button id="szm" aria-label="Smaller text">A&minus;</button><button id="szp" aria-label="Larger text">A+</button></div></div>
+  <div class="prow"><span class="label">Colors</span><div class="seg" id="themeSeg"><button data-t="auto">Auto</button><button data-t="light">Light</button><button data-t="dark">Dark</button></div></div>
+</div>
+
+<script>
+const P={
+sign:"In the name of the Father,\nand of the Son,\nand of the Holy Spirit.\nAmen.",
+creed:"I believe in God, the Father almighty, Creator of heaven and earth, and in Jesus Christ, his only Son, our Lord, who was conceived by the Holy Spirit, born of the Virgin Mary, suffered under Pontius Pilate, was crucified, died and was buried; he descended into hell; on the third day he rose again from the dead; he ascended into heaven, and is seated at the right hand of God the Father almighty; from there he will come to judge the living and the dead. I believe in the Holy Spirit, the holy catholic Church, the communion of saints, the forgiveness of sins, the resurrection of the body, and life everlasting. Amen.",
+our:"Our Father, who art in heaven, hallowed be thy name; thy kingdom come; thy will be done on earth as it is in heaven.\n\nGive us this day our daily bread; and forgive us our trespasses as we forgive those who trespass against us; and lead us not into temptation, but deliver us from evil. Amen.",
+hail:"Hail Mary, full of grace, the Lord is with thee; blessed art thou amongst women, and blessed is the fruit of thy womb, Jesus.\n\nHoly Mary, Mother of God, pray for us sinners, now and at the hour of our death. Amen.",
+glory:"Glory be to the Father, and to the Son, and to the Holy Spirit.\n\nAs it was in the beginning, is now, and ever shall be, world without end. Amen.",
+fatima:"O my Jesus, forgive us our sins,\nsave us from the fires of hell.\nLead all souls to heaven,\nespecially those most in need of Thy mercy.",
+queen:"Hail, Holy Queen, Mother of mercy,\nhail our life, our sweetness, and our hope.\nTo thee do we cry,\npoor banished children of Eve,\nto thee do we send up our sighs,\nmourning and weeping\nin this valley of tears.\nTurn then, most gracious advocate,\nthine eyes of mercy toward us;\nand after this our exile show unto us\nthe blessed fruit of thy womb Jesus,\nO clement, O loving, O sweet Virgin Mary.\n\nLeader: Pray for us, O holy Mother of God.\nAll: That we may be made worthy of the promises of Christ.",
+close:"Let us pray:\nO God, whose only-begotten Son,\nby His life, death, and resurrection,\nhas purchased for us the rewards\nof eternal life;\ngrant we beseech Thee,\nthat meditating on these mysteries\nof the most holy Rosary\nof the Blessed Virgin Mary,\nwe may imitate what they contain\nand obtain what they promise.\nThrough the same Christ our Lord. Amen.",
+memorare:"Remember, O most gracious Virgin Mary,\nthat never was it known\nthat anyone who fled to your protection,\nimplored your help,\nor sought your intercession\nwas left unaided.\nInspired with this confidence, I fly to you,\nO Virgin of virgins, my Mother;\nto you I come; before you I stand,\nsinful and sorrowful.\nO Mother of the Word Incarnate,\ndespise not my petitions,\nbut in your mercy hear and answer me. Amen."
+};
+const SETS={
+Joyful:{days:[1,6],m:[
+["The Annunciation","The Angel went in and said to her, ‘Rejoice, you who enjoy God’s favour! The Lord is with you.’ (LK 1:28)"],
+["The Visitation","Elizabeth was filled with the Holy Spirit. She gave a loud cry and said, ‘Of all women, you are the most blessed, and blessed is the fruit of your womb.’ (LK 1:41-42)"],
+["The Birth of Jesus","Mary gave birth to a son, her first-born. She wrapped him in swaddling clothes, and laid him in a manger, because there was no room for them in the inn. (LK 2:7)"],
+["The Presentation","And when the day came for them to be purified in keeping with the Law of Moses, they took him up to Jerusalem to present him to the Lord. (LK 2:22-23)"],
+["Finding Jesus in the Temple","Three days later, they found him in the temple sitting among the teachers, listening to them and asking them questions. (LK 2:46)"]]},
+Sorrowful:{days:[2,5],m:[
+["The Agony in the Garden","In his anguish, Jesus prayed even more earnestly, and His sweat fell to the ground like great drops of blood. (Luke 22:44)"],
+["The Scourging at the Pillar","Pilate then had Jesus taken away and scourged. (John 19:1)"],
+["The Crowning with Thorns","The soldiers stripped him and put a scarlet cloak round him, and having twisted some thorns into a crown, they put this on his head. (Mt 27:28-29)"],
+["The Carrying of the Cross","Jesus carrying his own cross, he went out to the Place of the Skull, or, as it is called in Hebrew, Golgotha. (John 19:17)"],
+["The Crucifixion","Jesus cried out in a loud voice saying, “Father, into your hands I commit my spirit.” With these words, he breathed his last. (Luke 23:46)"]]},
+Glorious:{days:[3,0],m:[
+["The Resurrection","A young man said to them, ‘There is no need to be so amazed. You are looking for Jesus of Nazareth, who was crucified; He has risen.’ (Mk 16:6)"],
+["The Ascension","And so the Lord Jesus, after He had spoken to them, was taken up into heaven; there at the right hand of God, He took his place. (Mk 16:19)"],
+["The Descent of the Holy Spirit","They were all filled with the Holy Spirit and began to speak different languages as the Spirit gave them power to express themselves. (AC 2:4)"],
+["The Assumption","Now a great sign appeared in heaven; a woman, robed with the sun, standing on the moon, and on her head a crown of twelve stars. (RV 12:1)"],
+["The Coronation","You are the glory of Jerusalem! The highest honour of our race! God has approved what you have done. May you be blessed by the Lord Almighty in all the days to come! (JDT 15:9-10)"]]},
+Luminous:{days:[4],m:[
+["The Baptism of Jesus","There was a voice from Heaven, ‘This is my Son, the Beloved; my favour rests on Him.’ (Mt 3:17)"],
+["The Wedding at Cana","Mother Mary said to Jesus, “They have no wine.” She said to the servants, “Do whatever He tells you.” (Jn 2:3-5)"],
+["The Proclamation of the Kingdom of God","The time is fulfilled and the kingdom of God is close at hand. Repent, and believe the gospel. (Mk 1:15)"],
+["The Transfiguration","From the cloud, there came a voice which said, “This is my Son, the Beloved; He enjoys my favour. Listen to Him.” (Mt 17:5)"],
+["The Institution of the Eucharist","Now as they were eating, Jesus took bread and when He had said the blessing, He broke it and gave it to the disciples, ‘Take it and eat.’ He said, ‘This is My Body.’ (Mt 26:26)"]]}
+};
+const ORD=["1st","2nd","3rd","4th","5th"];
+const $=id=>document.getElementById(id);
+const run=$("run");
+const todaySet=Object.keys(SETS).find(k=>SETS[k].days.includes(new Date().getDay()));
+let cur=todaySet,steps=[],tapMap={},i=0,active=false,view="rosary",sz=0,theme="auto";
+
+/* ---------- mystery art (simple inline SVG scenes, 280 x 130) ---------- */
+const SKN="#efc9a1",BLU="#2f5fa8",CRM="#efe8d8";
+const bgs=(sky,gr,gy=98)=>`<rect x="-150" y="-80" width="580" height="${gy+80}" fill="${sky}"/><rect x="-150" y="${gy}" width="580" height="200" fill="${gr}"/>`;
+const fig=(x,y,h,c,o={})=>{const r=h*.13,cy=y-h*.8;return `<path d="M${x-h*.27} ${y}L${x-h*.12} ${y-h*.68}H${x+h*.12}L${x+h*.27} ${y}Z" fill="${c}"/><circle cx="${x}" cy="${cy}" r="${r}" fill="${o.skin||SKN}"/>`+(o.hood?`<path d="M${x-r*1.2} ${cy+r*.1}A${r*1.2} ${r*1.2} 0 0 1 ${x+r*1.2} ${cy+r*.1}Z" fill="${o.hood}"/>`:"")+(o.halo?`<circle cx="${x}" cy="${cy}" r="${r*1.9}" fill="none" stroke="#f2c14e" stroke-width="2.4"/>`:"")};
+const star=(x,y,r,f="#ffd45e")=>{let p="";for(let k=0;k<10;k++){const a=-Math.PI/2+k*Math.PI/5,q=k%2?r*.45:r;p+=(k?"L":"M")+(x+q*Math.cos(a)).toFixed(1)+" "+(y+q*Math.sin(a)).toFixed(1)}return `<path d="${p}Z" fill="${f}"/>`};
+const crs=(x,y,h,c,w)=>{w=w||h*.12;return `<rect x="${x-w/2}" y="${y}" width="${w}" height="${h}" fill="${c}"/><rect x="${x-h*.3}" y="${y+h*.25}" width="${h*.6}" height="${w}" fill="${c}"/>`};
+const cld=(x,y,s=1,c="#fff")=>`<g fill="${c}"><ellipse cx="${x}" cy="${y}" rx="${22*s}" ry="${9*s}"/><ellipse cx="${x-14*s}" cy="${y+3*s}" rx="${14*s}" ry="${7*s}"/><ellipse cx="${x+16*s}" cy="${y+3*s}" rx="${15*s}" ry="${7*s}"/></g>`;
+const tree=(x,y,s,c="#4d7a3a")=>`<rect x="${x-2*s}" y="${y-18*s}" width="${4*s}" height="${18*s}" fill="#6b4a2b"/><circle cx="${x}" cy="${y-26*s}" r="${14*s}" fill="${c}"/>`;
+const dove=(x,y,s=1)=>`<g transform="translate(${x} ${y}) scale(${s})"><path d="M-9 0L-18 5L-9 3Z" fill="#fff"/><ellipse rx="9" ry="5" fill="#fff"/><circle cx="8" cy="-4" r="3.5" fill="#fff"/><path d="M11 -4L15 -3L11 -2Z" fill="#e9a23a"/><path d="M-3 -2C-8 -15 4 -17 9 -9C4 -8 1 -5 -3 -2Z" fill="#eef2f8" stroke="#c4ccd8" stroke-width=".8"/></g>`;
+const rays=(x,y,n,a,b,c,w=3,o=.7)=>{let d="";for(let k=0;k<n;k++){const t=k*2*Math.PI/n;d+=`M${(x+a*Math.cos(t)).toFixed(1)} ${(y+a*Math.sin(t)).toFixed(1)}L${(x+b*Math.cos(t)).toFixed(1)} ${(y+b*Math.sin(t)).toFixed(1)}`}return `<path d="${d}" stroke="${c}" stroke-width="${w}" stroke-linecap="round" opacity="${o}"/>`};
+const flame=(x,y)=>`<g transform="translate(${x} ${y})"><path d="M0 0C-7 -8 -3 -13 0 -22C3 -13 7 -8 0 0Z" fill="#ff7a2b"/><path d="M0 0C-3 -4 -1 -7 0 -11C1 -7 3 -4 0 0Z" fill="#ffd45e"/></g>`;
+const jar=x=>`<g transform="translate(${x} 100) scale(1.5)"><path d="M-10 -22C-10 -28 -6 -30 -6 -34H6C6 -30 10 -28 10 -22C16 -14 14 0 8 6H-8C-14 0 -16 -14 -10 -22Z" fill="#b5653c"/><rect x="-8" y="-37" width="16" height="4" fill="#9a4f2d"/></g>`;
+const thorns=(cx,cy,rx,ry,n)=>[...Array(n)].map((_,k)=>{const a=k*2*Math.PI/n,x=cx+rx*Math.cos(a),y=cy+ry*Math.sin(a);return `<path d="M${x.toFixed(1)} ${y.toFixed(1)}l${(8*Math.cos(a+.6)).toFixed(1)} ${(8*Math.sin(a+.6)-3).toFixed(1)}" stroke="#3b2812" stroke-width="2.4" stroke-linecap="round"/>`}).join("");
+
+const ART={
+Joyful:[
+/* Annunciation */
+bgs("#a9c9e8","#d9c9a3",100)+`<polygon points="300,-30 150,100 222,100" fill="#fff4bd" opacity=".7"/><g fill="#fff" stroke="#bccfe2" stroke-width="1.5"><ellipse cx="184" cy="58" rx="14" ry="30" transform="rotate(-20 184 58)"/><ellipse cx="216" cy="58" rx="14" ry="30" transform="rotate(20 216 58)"/></g>`+fig(200,100,80,"#fffdf4",{halo:1,hood:"#d9b45c"})+fig(82,100,74,BLU,{halo:1,hood:"#24498a"})+`<path d="M142 100V76" stroke="#4d7a3a" stroke-width="3"/><circle cx="142" cy="72" r="6" fill="#fff"/><circle cx="142" cy="72" r="2" fill="#f2c14e"/>`,
+/* Visitation */
+bgs("#bfe0f2","#92b86a",98)+`<circle cx="40" cy="26" r="13" fill="#ffd45e"/><ellipse cx="236" cy="108" rx="96" ry="38" fill="#7fa75a"/><rect x="214" y="64" width="40" height="36" fill="#e8d3a8"/><path d="M209 64L234 42L259 64Z" fill="#b5533c"/><rect x="228" y="80" width="11" height="20" fill="#7a5230"/>`+tree(18,100,1)+fig(152,102,70,"#8c4f7a",{hood:"#d8d3cf"})+fig(122,102,76,BLU,{halo:1,hood:"#24498a"}),
+/* Birth of Jesus */
+bgs("#1f2d57","#4d3d2b",102)+``+star(228,30,16)+`<circle cx="40" cy="20" r="1.6" fill="#fff"/><circle cx="90" cy="14" r="1.4" fill="#fff"/><circle cx="170" cy="22" r="1.6" fill="#fff"/><circle cx="262" cy="52" r="1.5" fill="#fff"/><circle cx="20" cy="60" r="1.4" fill="#fff"/><rect x="72" y="62" width="116" height="40" fill="#3a2d20"/><path d="M58 64L130 28L202 64Z" fill="#8a5e36"/><rect x="64" y="62" width="7" height="40" fill="#6b4a2b"/><rect x="189" y="62" width="7" height="40" fill="#6b4a2b"/><circle cx="130" cy="88" r="22" fill="#ffe9a0" opacity=".35"/><path d="M108 92H152L146 102H114Z" fill="#a8773f"/><ellipse cx="130" cy="89" rx="13" ry="5" fill="#fff6dc"/><circle cx="121" cy="86" r="4.2" fill="${SKN}"/>`+fig(88,102,52,BLU,{halo:1,hood:"#24498a"})+fig(172,102,58,"#8a6a3a",{hood:"#4a3626"}),
+/* Presentation */
+bgs("#f1e2c4","#cdb98f",100)+`<path d="M24 40L140 10L256 40Z" fill="#d9c9a0"/><rect x="24" y="38" width="232" height="8" fill="#cbb98c"/><rect x="108" y="46" width="64" height="54" fill="#8b6b45"/><g fill="#efe5cc" stroke="#c9b88c"><rect x="38" y="46" width="14" height="54"/><rect x="82" y="46" width="14" height="54"/><rect x="184" y="46" width="14" height="54"/><rect x="228" y="46" width="14" height="54"/></g>`+dove(58,96,.7)+dove(70,98,.6)+fig(126,102,72,"#6b4a8a",{hood:"#d0cbc4"})+`<ellipse cx="150" cy="72" rx="12" ry="6" fill="#fff6dc" transform="rotate(-20 150 72)"/><circle cx="141" cy="68" r="4.2" fill="${SKN}"/>`+fig(172,102,68,BLU,{halo:1,hood:"#24498a"})+fig(204,102,62,"#8a6a3a",{hood:"#4a3626"}),
+/* Finding Jesus in the Temple */
+bgs("#e9d9bb","#c4ae80",100)+`<g fill="#d1bd92"><path d="M8 100V52A31 31 0 0 1 70 52V100Z"/><path d="M98 100V44A42 42 0 0 1 182 44V100Z"/><path d="M210 100V52A31 31 0 0 1 272 52V100Z"/></g>`+fig(68,102,72,"#6b4a8a",{hood:"#d0cbc4"})+fig(100,102,66,"#8a4a3a",{hood:"#555"})+fig(182,102,66,"#3a6a6a",{hood:"#d0cbc4"})+fig(214,102,72,"#8a6a2a",{hood:"#444"})+`<rect x="118" y="92" width="44" height="10" rx="3" fill="#a8773f"/>`+fig(140,94,42,CRM,{halo:1,hood:"#6b4423"})
+],
+Sorrowful:[
+/* Agony in the Garden */
+bgs("#151b3a","#2b2a1f",100)+`<circle cx="236" cy="22" r="11" fill="#f3efd2"/><circle cx="30" cy="20" r="1.6" fill="#fff"/><circle cx="76" cy="12" r="1.4" fill="#fff"/><circle cx="160" cy="16" r="1.5" fill="#fff"/>`+tree(34,104,1.25,"#35523a")+tree(250,104,1.2,"#35523a")+`<polygon points="198,52 112,100 178,100" fill="#fff3b0" opacity=".2"/><path d="M186 44h22l-4 13q-7 5-14 0z" fill="#f2c14e"/><rect x="195" y="57" width="4" height="8" fill="#f2c14e"/><rect x="189" y="65" width="16" height="3" fill="#f2c14e"/><path d="M104 104Q112 84 150 86Q180 88 188 104Z" fill="#5b5a58"/><path d="M118 104Q114 86 126 74H142Q150 90 152 104Z" fill="${CRM}"/><circle cx="136" cy="68" r="8" fill="${SKN}"/><path d="M127.5 69A8.5 8.5 0 0 1 144.5 69Z" fill="#6b4423"/><circle cx="136" cy="68" r="15" fill="none" stroke="#f2c14e" stroke-width="2.2"/>`,
+/* Scourging at the Pillar */
+bgs("#3d2a30","#2c2024",102)+`<rect x="112" y="14" width="40" height="8" fill="#cfc9be"/><rect x="118" y="22" width="28" height="78" fill="#b9b3a8"/><rect x="112" y="98" width="40" height="7" fill="#cfc9be"/><path d="M118 50H146M118 57H146" stroke="#8a6b3a" stroke-width="3"/><path d="M226 14V44" stroke="#8a6b3a" stroke-width="4"/><path d="M226 44l-12 26M226 44l-3 30M226 44l8 28M226 44l17 24" stroke="#6b4a2b" stroke-width="2.2" fill="none" stroke-linecap="round"/><path d="M152 104L162 66H182L194 104Z" fill="${CRM}"/><circle cx="168" cy="58" r="9" fill="${SKN}"/><path d="M158.5 59A9.5 9.5 0 0 1 177.5 59Z" fill="#6b4423"/><circle cx="168" cy="58" r="17" fill="none" stroke="#f2c14e" stroke-width="2.2"/>`,
+/* Crowning with Thorns */
+bgs("#3a2b4d","#2a2030",102)+`<path d="M40 120Q60 60 140 56Q220 60 240 120Z" fill="#a32a35"/><path d="M96 120Q100 92 140 94Q180 92 184 120Z" fill="#c23a42"/><circle cx="140" cy="68" r="21" fill="${SKN}"/><path d="M119 66A21 21 0 0 1 161 66Q150 56 140 58Q130 56 119 66Z" fill="#6b4423"/><path d="M122 80Q140 92 158 80Q158 96 140 98Q122 96 122 80Z" fill="#6b4423"/><ellipse cx="140" cy="54" rx="26" ry="7" fill="none" stroke="#5a3e22" stroke-width="5"/>`+thorns(140,54,26,7,14)+`<path d="M222 22L206 108" stroke="#c4aa6a" stroke-width="4"/>`,
+/* Carrying of the Cross */
+bgs("#5a3f58","#3a2f2c",100)+`<path d="M176 52h8v-6h8v6h8v-6h8v6h8v-6h8v6h8v-6h8v6h16v54h-96z" fill="#2e2431"/><path d="M-150 112L300 82V140H-150Z" fill="#6b5a4a"/><g transform="rotate(5 112 108)">`+fig(112,108,66,CRM,{halo:1,hood:"#6b4423"})+`</g><g transform="translate(138 78) rotate(62)"><rect x="-5" y="-24" width="10" height="120" fill="#7a5230"/><rect x="-28" y="-12" width="56" height="9" fill="#7a5230"/></g>`,
+/* Crucifixion */
+bgs("#2b2233","#1f1a22",104)+`<circle cx="52" cy="30" r="15" fill="#120f18"/><circle cx="52" cy="30" r="17" fill="none" stroke="#e8b04a" stroke-width="2.2"/>`+crs(140,10,92,"#d8b98a",9)+crs(90,36,66,"#9a7a58",7)+crs(190,36,66,"#9a7a58",7)+`<ellipse cx="140" cy="122" rx="160" ry="36" fill="#3a2f33"/>`+fig(118,102,36,BLU,{hood:"#24498a"})+fig(162,102,36,"#a33a3a",{hood:"#5a3a22"})
+],
+Glorious:[
+/* Resurrection */
+bgs("#f8d9a0","#7ea85c",102)+`<circle cx="40" cy="36" r="14" fill="#ffd45e"/><path d="M-30 106Q60 28 160 36Q250 44 320 106Z" fill="#a39a8c"/>`+rays(140,66,18,34,104,"#fff6c8",3,.85)+`<path d="M112 106V70A28 28 0 0 1 168 70V106Z" fill="#2c2420"/><circle cx="204" cy="90" r="19" fill="#bdb5a7" stroke="#8d8576" stroke-width="2"/><path d="M160 36V104" stroke="#7a5230" stroke-width="2.6"/><path d="M161 38h26v18h-26z" fill="#fff" stroke="#c23a42" stroke-width="2"/><path d="M174 41v12M168 47h12" stroke="#c23a42" stroke-width="2.4"/>`+fig(140,106,80,"#ffffff",{halo:1,hood:"#6b4423"}),
+/* Ascension */
+bgs("#9ccbef","#7fae60",106)+`<polygon points="140,-30 56,106 224,106" fill="#fff6c8" opacity=".4"/>`+cld(58,30,1.1)+cld(226,44,1.2)+cld(140,76,1.5)+`<path d="M127 36L110 24M153 36L170 24" stroke="#fff" stroke-width="5.5" stroke-linecap="round"/>`+fig(140,76,60,"#ffffff",{halo:1,hood:"#6b4423"})+cld(140,80,1.1)+fig(66,108,40,"#8a4a3a",{hood:"#3b2a1d"})+fig(100,110,38,"#3a6a6a",{hood:"#3b2a1d"})+fig(140,112,40,BLU,{hood:"#24498a"})+fig(180,110,38,"#6b4a8a",{hood:"#3b2a1d"})+fig(214,108,40,"#8a6a2a",{hood:"#3b2a1d"}),
+/* Descent of the Holy Spirit */
+bgs("#2f2650","#5a4630",104)+`<polygon points="140,30 30,104 250,104" fill="#ffe9a0" opacity=".16"/>`+dove(140,19,1.05)+[[56,58,"#8a4a3a"],[98,60,"#3a6a6a"],[140,62,BLU],[182,60,"#8a6a2a"],[224,58,"#6b4a8a"]].map(([x,h,c])=>fig(x,106,h,c,{hood:x===140?"#24498a":"#3b2a1d"})+flame(x,106-h*.93-3)).join(""),
+/* Assumption */
+bgs("#a9d2f0","#a9d2f0",150)+`<circle cx="140" cy="62" r="54" fill="#fff6c8" opacity=".8"/>`+rays(140,62,20,56,92,"#fff6c8",3,.7)+`<g fill="#fff" stroke="#c9d8e6" stroke-width="1"><ellipse cx="72" cy="46" rx="7" ry="14" transform="rotate(-28 72 46)"/><ellipse cx="94" cy="46" rx="7" ry="14" transform="rotate(28 94 46)"/><ellipse cx="186" cy="46" rx="7" ry="14" transform="rotate(-28 186 46)"/><ellipse cx="208" cy="46" rx="7" ry="14" transform="rotate(28 208 46)"/></g>`+fig(83,74,32,"#fffdf4",{halo:1,hood:"#d9b45c"})+fig(197,74,32,"#fffdf4",{halo:1,hood:"#d9b45c"})+star(44,22,8,"#fff")+star(236,20,8,"#fff")+fig(140,98,76,BLU,{halo:1,hood:"#24498a"})+`<ellipse cx="140" cy="58" rx="4.5" ry="6.5" fill="${SKN}"/>`+cld(140,100,1.9)+cld(84,112,1.2)+cld(198,112,1.2),
+/* Coronation */
+bgs("#2b4a86","#2b4a86",150)+`<circle cx="140" cy="58" r="52" fill="#ffe9a0" opacity=".25"/>`+[...Array(12)].map((_,k)=>{const a=k*Math.PI/6-Math.PI/2;return star(140+68*Math.cos(a),56+46*Math.sin(a),6.5)}).join("")+fig(140,118,96,"#3b6bc0",{skin:"#3b6bc0"})+fig(140,118,88,"#f4f0e6",{hood:"#3b6bc0"})+`<path d="M124 34L127 20L133 29L140 15L147 29L153 20L156 34Z" fill="#f2c14e" stroke="#c99a2e" stroke-width="1.2"/>`
+],
+Luminous:[
+/* Baptism of Jesus */
+bgs("#9fcbe6","#8fb56b",84)+`<ellipse cx="40" cy="84" rx="90" ry="22" fill="#7fa75a"/><ellipse cx="250" cy="84" rx="80" ry="18" fill="#7fa75a"/><polygon points="150,22 134,48 166,48" fill="#fff6c8" opacity=".7"/>`+dove(150,20,1.1)+fig(150,112,76,"#ffffff",{halo:1,hood:"#6b4423"})+fig(66,104,72,"#a37a3a",{hood:"#3b2a1d"})+`<path d="M82 56L124 40" stroke="#a37a3a" stroke-width="5.5" stroke-linecap="round"/><ellipse cx="128" cy="38" rx="8" ry="4" fill="#fff" transform="rotate(-20 128 38)"/><circle cx="134" cy="48" r="2" fill="#7bb5e0"/><circle cx="130" cy="56" r="2" fill="#7bb5e0"/><rect x="-150" y="88" width="580" height="60" fill="#4a90c2" opacity=".92"/><path d="M-20 100q15-6 30 0t30 0t30 0t30 0t30 0t30 0t30 0t30 0t30 0t30 0t30 0" fill="none" stroke="#9ccbe6" stroke-width="2.2"/><path d="M-5 116q15-6 30 0t30 0t30 0t30 0t30 0t30 0t30 0t30 0t30 0t30 0" fill="none" stroke="#9ccbe6" stroke-width="2.2"/>`,
+/* Wedding at Cana */
+bgs("#f0dcc0","#a8865a",98)+jar(44)+jar(76)+jar(108)+`<ellipse cx="108" cy="46" rx="10" ry="2.6" fill="#8a1f2e"/>`+fig(150,102,72,BLU,{halo:1,hood:"#24498a"})+fig(190,102,76,CRM,{halo:1,hood:"#6b4423"})+fig(232,102,66,"#7a8a3a",{hood:"#3b2a1d"})+`<g transform="translate(222 54)"><path d="M0 0h14l-2 11q-5 4-10 0z" fill="#a82a40"/><rect x="6" y="11" width="2.5" height="6" fill="#d9c9a0"/></g>`,
+/* Proclamation of the Kingdom */
+bgs("#b4d8ee","#8fb56b",150)+`<circle cx="236" cy="26" r="13" fill="#ffd45e"/><polygon points="140,-30 96,76 184,76" fill="#fff6c8" opacity=".3"/><ellipse cx="140" cy="140" rx="180" ry="62" fill="#8fb56b"/><ellipse cx="140" cy="146" rx="150" ry="52" fill="#7fa75a"/>`+fig(140,84,62,"#ffffff",{halo:1,hood:"#6b4423"})+`<path d="M152 56L176 34" stroke="#ffffff" stroke-width="6.5" stroke-linecap="round"/><circle cx="177" cy="33" r="4.2" fill="${SKN}"/>`+[[54,114,"#8a4a3a"],[88,118,"#3a6a6a"],[122,124,"#a37a3a"],[160,124,"#c23a42"],[194,118,"#6b4a8a"],[228,114,"#8a6a2a"]].map(([x,y,c])=>fig(x,y,36,c,{hood:"#3b2a1d"})).join(""),
+/* Transfiguration */
+bgs("#24396a","#24396a",150)+`<path d="M10 134L140 52L270 134Z" fill="#6f6a62"/>`+cld(140,12,1.5,"#dfe7f5")+`<circle cx="140" cy="52" r="46" fill="#fff" opacity=".2"/>`+rays(140,52,16,34,66,"#ffe9a0",3,.8)+`<circle cx="140" cy="52" r="34" fill="#ffd45e" opacity=".55"/><path d="M128 44L100 40M152 44L180 40" stroke="#fff" stroke-width="6" stroke-linecap="round"/>`+fig(140,92,64,"#ffffff",{hood:"#6b4423"})+fig(64,80,38,"#c9a24a",{hood:"#d0cbc4"})+fig(216,80,38,"#8a4a3a",{hood:"#d0cbc4"})+cld(64,84,.9,"#dfe7f5")+cld(216,84,.9,"#dfe7f5"),
+/* Institution of the Eucharist */
+bgs("#1f3558","#6b4a2b",102)+`<rect x="40" y="100" width="200" height="7" fill="#f3ead7"/>`+rays(140,38,20,26,62,"#f2c14e",3,.65)+`<circle cx="140" cy="38" r="19" fill="#fff8e6"/><path d="M140 27v22M129 38h22" stroke="#c9a24a" stroke-width="3.2"/><path d="M114 62H166C166 80 156 90 140 90C124 90 114 80 114 62Z" fill="#f2c14e"/><rect x="136" y="90" width="8" height="10" fill="#e3ae35"/><path d="M118 102Q140 92 162 102Z" fill="#e3ae35"/><g stroke="#e0b94d" stroke-width="3" stroke-linecap="round" fill="none"><path d="M60 104V54M76 104V64M92 104V70"/></g><g fill="#e0b94d"><ellipse cx="60" cy="50" rx="4" ry="8"/><ellipse cx="76" cy="60" rx="4" ry="8"/><ellipse cx="92" cy="66" rx="4" ry="8"/></g><g fill="#7a4aa0"><circle cx="204" cy="66" r="5.5"/><circle cx="216" cy="66" r="5.5"/><circle cx="198" cy="77" r="5.5"/><circle cx="210" cy="77" r="5.5"/><circle cx="222" cy="77" r="5.5"/><circle cx="204" cy="88" r="5.5"/><circle cx="216" cy="88" r="5.5"/><circle cx="210" cy="98" r="5.5"/></g><path d="M206 58Q214 48 228 54Q222 64 206 60Z" fill="#4d7a3a"/>`
+]};
+/* opening and closing pages */
+const CROSSART=bgs("#dfe9f2","#c3d6b8",100)+`<circle cx="140" cy="52" r="42" fill="#fff6d4"/>`+rays(140,52,20,44,66,"#f2c14e",2.6,.6)+`<path d="M-30 106Q60 80 140 98Q220 80 310 106V140H-30Z" fill="#a9c49a"/>`+crs(140,14,90,"#8a5e36",11);
+
+/* ---------- home ---------- */
+$("date").textContent=new Date().toLocaleDateString("en-SG",{weekday:"long",day:"numeric",month:"long"});
+function fillTabs(el){
+  el.innerHTML="";
+  Object.keys(SETS).forEach(k=>{
+    const b=document.createElement("button");
+    b.className="tab";b.setAttribute("aria-pressed",k===cur);
+    b.innerHTML=k+(k===todaySet?' <span class="today">&bull;</span>':"");
+    b.onclick=()=>{cur=k;renderHome();renderMyst()};
+    el.appendChild(b);
+  });
+}
+function renderHome(){
+  $("setName").textContent=cur;
+  fillTabs($("tabs"));
+  $("mlist").innerHTML=SETS[cur].m.map((m,n)=>`<li><b>${n+1}</b><span>${m[0]}</span></li>`).join("");
+}
+
+function renderMyst(){
+  $("mtitle").textContent="The "+cur+" Mysteries";
+  fillTabs($("mtabs"));
+  $("mcards").innerHTML=SETS[cur].m.map((m,n)=>`<article class="mcard"><svg class="mimg" viewBox="0 0 280 130" role="img" aria-label="${m[0]}">${ART[cur][n]}</svg><div class="mb"><div class="label">${ORD[n]} ${cur} Mystery</div><h2>${m[0]}</h2><p>${m[1]}</p></div></article>`).join("");
+}
+function renderClosing(){
+  $("cprayers").innerHTML=[["Hail, Holy Queen",P.queen],["Closing Prayer",P.close],["Memorare",P.memorare]].map(([t,x])=>`<article class="mcard"><div class="mb"><h2>${t}</h2><p class="prayer">${x}</p></div></article>`).join("");
+}
+
+/* ---------- rosary beads ---------- */
+const NS="http://www.w3.org/2000/svg",CX=160,CY=140,R=118;
+const seq=["c","t0","t1","t2","t3","t4"],pos={},B={};
+const pt={c:[CX,412],t0:[CX,374],t1:[CX,346],t2:[CX,326],t3:[CX,306],t4:[CX,284]};
+for(let k=0;k<55;k++){
+  seq.push("l"+k);
+  const a=(90-k*360/55)*Math.PI/180;
+  pt["l"+k]=[CX+R*Math.cos(a),CY+R*Math.sin(a)];
+}
+seq.forEach((id,n)=>pos[id]=n);
+const isBig=id=>id==="t0"||id==="t4"||(id[0]==="l"&&+id.slice(1)%11===0);
+const mk=(tag,attrs)=>{const e=document.createElementNS(NS,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);$("svg").appendChild(e);return e};
+function drawBeads(){
+  $("svg").innerHTML="";
+  mk("circle",{cx:CX,cy:CY,r:R,class:"str"});
+  mk("line",{x1:CX,y1:CY+R,x2:CX,y2:400,class:"str"});
+  mk("line",{x1:CX,y1:394,x2:CX,y2:432,class:"cross"});
+  mk("line",{x1:CX-12,y1:405,x2:CX+12,y2:405,class:"cross"});
+  seq.slice(1).forEach(id=>{
+    const [x,y]=pt[id];
+    B[id]=mk("circle",{cx:x,cy:y,r:id==="l0"?10:isBig(id)?7.5:5,class:"bead"});
+  });
+}
+function paint(st){
+  const p=st.done??pos[st.bead],hi=st.hi||[st.bead],grp=hi.length>1;
+  seq.slice(1).forEach(id=>B[id].setAttribute("class","bead"+(pos[id]<p?" done":"")+(hi.includes(id)?" cur"+(grp?" grp":""):"")));
+}
+
+/* ---------- prayer steps ---------- */
+function build(){
+  const S=SETS[cur].m;
+  steps=[];tapMap={};
+  const add=o=>steps.push(o);
+  const closing=(title,text,o)=>add({phase:"Closing",title,text,bead:"l0",done:seq.length,...o});
+  add({phase:"Opening",title:"Sign of the Cross",text:P.sign,bead:"c"});
+  add({phase:"Opening",title:"Apostles' Creed",text:P.creed,bead:"c",lg:true});
+  add({phase:"Opening",title:"Our Father",text:P.our,bead:"t0"});
+  ["Faith","Hope","Charity"].forEach((v,n)=>add({phase:"Opening",title:"Hail Mary",sub:v,text:P.hail,bead:"t"+(n+1),count:n+1,total:3}));
+  add({phase:"Opening",title:"Glory Be",text:P.glory,bead:"t4"});
+  for(let d=0;d<5;d++){
+    const m={n:ORD[d]+" "+cur+" Mystery",name:S[d][0],desc:S[d][1]},phase="",last="l"+(d*11+10),set=cur;
+    add({phase,title:"Our Father",text:P.our,bead:"l"+d*11,m,set,dec:d,intro:true});
+    add({phase,title:"Hail Mary",sub:"10 times",text:P.hail,title2:"Glory Be",text2:P.glory,bead:"l"+(d*11+1),hi:Array.from({length:10},(_,h)=>"l"+(d*11+h+1)),m,set,dec:d});
+    add({phase,title:"Fatima Prayer",text:P.fatima,bead:last,m,set,dec:d});
+  }
+  closing("Hail, Holy Queen",P.queen,{lg:true});
+  closing("Closing Prayer",P.close,{lg:true});
+  closing("Memorare",P.memorare,{lg:true});
+  closing("Personal Intentions","(Take a moment to offer your personal intentions in your own words.)",{lg:true,note:true});
+  add({phase:"Closing",title:"Sign of the Cross",text:P.sign,bead:"c",done:seq.length,end:true});
+  steps.forEach((x,n)=>(x.hi||[x.bead]).forEach(b=>{if(!(b in tapMap))tapMap[b]=n}));
+}
+
+function show(){
+  const st=steps[i],m=st.m,hm=!!st.count;
+  $("phase").textContent=st.phase;$("phase").hidden=!st.phase;
+  $("where").textContent=hm?"Hail Mary "+st.count+" of "+(st.total||10):"";
+  $("title").textContent=st.title+(st.sub?" ("+st.sub+")":"");
+  $("text").className="prayer"+(st.lg?" lg":"")+(st.note?" note":"");
+  $("text").textContent=st.text;
+  $("title2").hidden=$("text2").hidden=!st.title2;
+  if(st.title2){$("title2").textContent=st.title2;$("text2").textContent=st.text2}
+
+  $("myst").hidden=!m;
+  if(m){
+    $("mnum").textContent=m.n;
+    $("mname").innerHTML=m.name.split(" ").map(w=>'<span class="dc">'+w[0]+"</span>"+w.slice(1)).join(" ");
+    $("mdesc").textContent=m.desc;
+    $("mdesc").hidden=!st.intro;
+  }
+
+  const dots=$("dots"),tot=st.total||0;
+  dots.hidden=!tot;dots.innerHTML="";
+  for(let k=1;k<=tot;k++){
+    const d=document.createElement("button");
+    d.setAttribute("aria-label","Hail Mary "+k);
+    d.className=hm?(k<st.count?"on":k===st.count?"now":""):(st.intro?"":"on");
+    d.onclick=()=>jump(k);
+    dots.appendChild(d);
+  }
+
+  $("artsvg").innerHTML=m?ART[st.set][st.dec]:CROSSART;
+  $("back").disabled=i===0;
+  $("next").textContent=st.end?"Amen — Finish":(st.title2?"Next: Fatima Prayer":"Next");
+  $("card").scrollTop=0;
+  paint(st);
+  fit();
+}
+
+/* largest prayer text that fits the card without scrolling (A-/A+ then adjusts from there) */
+function fit(){
+  const c=$("card");
+  if(!c||!c.clientHeight)return;
+  let lo=19,hi=28,best=19;
+  while(lo<=hi){
+    const mid=(lo+hi)>>1;
+    c.style.setProperty("--fs",mid+"px");
+    if(c.scrollHeight<=c.clientHeight+1){best=mid;lo=mid+1}else hi=mid-1;
+  }
+  c.style.setProperty("--fs",Math.max(15,best+sz*2)+"px");
+}
+
+/* ---------- navigation ---------- */
+function go(n){
+  if(n>=steps.length)return exit();
+  i=Math.max(0,n);show();
+}
+function jump(k){
+  const c=steps[i],t=steps.findIndex(x=>x.title==="Hail Mary"&&x.count===k&&x.m===c.m&&x.total===c.total);
+  if(t>=0){haptic();go(t)}
+}
+function start(){build();i=0;active=true;drawBeads();setView("rosary");show()}
+function exit(){run.classList.remove("zoom");active=false;setView("rosary")}
+function setView(v){
+  view=v;
+  $("home").hidden=!(v==="rosary"&&!active);
+  run.hidden=!(v==="rosary"&&active);
+  $("mysteries").hidden=v!=="mysteries";
+  $("closing").hidden=v!=="closing";
+  document.querySelectorAll(".tb[data-v]").forEach(b=>b.setAttribute("aria-current",b.dataset.v===v?"page":"false"));
+  if(!run.hidden)fit();
+}
+function beadAt(e){
+  const s=$("svg"),m=s.getScreenCTM();
+  if(!m)return null;
+  const p=s.createSVGPoint();p.x=e.clientX;p.y=e.clientY;
+  const q=p.matrixTransform(m.inverse());
+  let best=null,bd=22;
+  for(const id in pt){const d=Math.hypot(pt[id][0]-q.x,pt[id][1]-q.y);if(d<bd){bd=d;best=id}}
+  return best;
+}
+function store(k,v){try{localStorage.setItem("rosary."+k,v)}catch(e){}}
+function load(k){try{return localStorage.getItem("rosary."+k)}catch(e){return null}}
+function applySettings(){
+  const r=document.documentElement;
+  r.style.setProperty("--sz",sz);
+  if(theme==="auto")r.removeAttribute("data-theme");else r.setAttribute("data-theme",theme);
+  $("szm").disabled=sz<=-2;$("szp").disabled=sz>=5;
+  document.querySelectorAll("#themeSeg button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.t===theme));
+  fit();
+}
+function closePanel(){$("panel").hidden=true;$("scrim").hidden=true;$("disp").setAttribute("aria-expanded","false")}
+function togglePanel(){
+  const open=$("panel").hidden;
+  $("panel").hidden=!open;$("scrim").hidden=!open;$("disp").setAttribute("aria-expanded",open);
+}
+function haptic(){
+  try{if(navigator.vibrate)navigator.vibrate(12)}catch(e){}
+  try{$("hap").click()}catch(e){}
+}
+
+/* ---------- events ---------- */
+$("begin").onclick=start;
+$("exit").onclick=exit;
+$("next").onclick=()=>{haptic();go(i+1)};
+$("back").onclick=()=>{haptic();go(i-1)};
+$("beads").onclick=e=>{
+  if(!run.classList.contains("zoom")){run.classList.add("zoom");return}
+  const id=beadAt(e);
+  run.classList.remove("zoom");
+  if(id!=null&&tapMap[id]!=null){haptic();go(tapMap[id])}else fit();
+};
+$("beads").onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();run.classList.toggle("zoom")}};
+document.addEventListener("keydown",e=>{
+  if(run.hidden)return;
+  const onControl=e.target.closest("button,[role=button]");
+  if(e.key==="Escape")run.classList.remove("zoom");
+  else if(e.key==="ArrowRight"||(e.key===" "&&!onControl)){e.preventDefault();go(i+1)}
+  else if(e.key==="ArrowLeft")go(i-1);
+});
+document.querySelectorAll(".tb[data-v]").forEach(b=>b.onclick=()=>{closePanel();setView(b.dataset.v)});
+$("disp").onclick=togglePanel;
+$("scrim").onclick=closePanel;
+$("szm").onclick=()=>{sz=Math.max(-2,sz-1);store("sz",sz);applySettings()};
+$("szp").onclick=()=>{sz=Math.min(5,sz+1);store("sz",sz);applySettings()};
+document.querySelectorAll("#themeSeg button").forEach(b=>b.onclick=()=>{theme=b.dataset.t;store("theme",theme);applySettings()});
+window.addEventListener("resize",fit);
+renderHome();renderMyst();renderClosing();
+{const a=parseInt(load("sz"),10),t=load("theme");if(a>=-2&&a<=5)sz=a;if(t==="light"||t==="dark")theme=t}
+applySettings();setView("rosary");
+</script>
+</body>
+</html>
