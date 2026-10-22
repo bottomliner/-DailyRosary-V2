@@ -3,38 +3,50 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Daily Rosary</title>
 <meta name="color-scheme" content="light dark">
+<title>Daily Rosary</title>
+<!-- serif font used by the Home page only; falls back to Georgia when offline -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,300;1,400&display=swap">
 <style>
-/* ---------- theme ---------- */
+/* ---------- theme: light, dark (system or chosen), text size ---------- */
 :root{color-scheme:light;--bg:#eeece5;--card:#f8f6f0;--ink:#24211c;--muted:#5a554b;--gold:#8a5a00;--off:#d9d4c6;--line:#b3ac9a;--accent:#7b1e2b;--on-accent:#fbf8f1;
-  --sans:system-ui,-apple-system,"SF Pro Text","Segoe UI",Roboto,sans-serif;--sz:0;
+  --sans:system-ui,-apple-system,"SF Pro Text","Segoe UI",Roboto,sans-serif;
+  --sz:0;                                /* A-/A+ step, set from JS */
+  --pf:calc(19px + var(--sz)*2px);       /* every prayer and description: the Apostles' Creed size */
+  --tf:calc(22px + var(--sz)*1px);       /* prayer titles */
   padding:env(safe-area-inset-top,0px) 0 0}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;--bg:#171513;--card:#211e1b;--ink:#ece6d8;--muted:#b9b0a0;--gold:#e0b861;--off:#3d3731;--line:#585046;--accent:#d4737c;--on-accent:#171513}
-  :root:not([data-theme="light"]) .art svg,:root:not([data-theme="light"]) .mimg{filter:brightness(.88)}}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){color-scheme:dark;--bg:#171513;--card:#211e1b;--ink:#ece6d8;--muted:#b9b0a0;--gold:#e0b861;--off:#3d3731;--line:#585046;--accent:#d4737c;--on-accent:#171513}
+  :root:not([data-theme="light"]) .art svg,:root:not([data-theme="light"]) .mimg{filter:brightness(.88)}
+}
 :root[data-theme="dark"]{color-scheme:dark;--bg:#171513;--card:#211e1b;--ink:#ece6d8;--muted:#b9b0a0;--gold:#e0b861;--off:#3d3731;--line:#585046;--accent:#d4737c;--on-accent:#171513}
 :root[data-theme="dark"] .art svg,:root[data-theme="dark"] .mimg{filter:brightness(.88)}
 
 /* ---------- base ---------- */
 *{box-sizing:border-box;touch-action:manipulation}
 html,body{height:100%;margin:0}
-body{background:var(--bg);color:var(--ink);font:20px var(--sans);-webkit-tap-highlight-color:transparent;display:flex;flex-direction:column}
+body{display:flex;flex-direction:column;background:var(--bg);color:var(--ink);font:20px var(--sans);-webkit-tap-highlight-color:transparent}
 [hidden]{display:none!important}
 button{font-family:var(--sans)}
 button,.beads{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
-.screen{max-width:540px;width:100%;flex:1;min-height:0;margin:0 auto;padding:0 18px;display:flex;flex-direction:column}
+.screen{flex:1;min-height:0;width:100%;max-width:540px;margin:0 auto;padding:0 18px;display:flex;flex-direction:column}
 .label{font:600 15px/1.2 var(--sans);letter-spacing:.04em;color:var(--muted)}
 .btn{font:600 19px var(--sans);border:0;border-radius:14px;padding:16px 20px;background:var(--accent);color:var(--on-accent);cursor:pointer}
 .btn.ghost{background:none;color:var(--ink);border:1px solid var(--line)}
 .btn:disabled{opacity:.4}
-.hap{position:fixed;left:-99px;width:1px;height:1px;overflow:hidden;opacity:0}
+.hap{position:fixed;left:-99px;width:1px;height:1px;overflow:hidden;opacity:0}   /* iOS haptic switch */
 
-/* ---------- home ---------- */
+/* ---------- Home: keeps the original V1 look ---------- */
+body.orig{--bg:#f4ecdc;--card:#fbf6ea;--ink:#2a1f14;--muted:#7a6a55;--gold:#9a6f1f;--off:#d8cbb0;--line:#bfae8c;--accent:#7b1e2b;--on-accent:#fbf6ea;font-family:"Cormorant Garamond",Georgia,"Times New Roman",serif}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) body.orig{--bg:#130f0d;--card:#1d1713;--ink:#efe4cf;--muted:#a39278;--gold:#d6ac55;--off:#3a3028;--line:#4a3d31;--accent:#c25b64;--on-accent:#130f0d}}
+:root[data-theme="dark"] body.orig{--bg:#130f0d;--card:#1d1713;--ink:#efe4cf;--muted:#a39278;--gold:#d6ac55;--off:#3a3028;--line:#4a3d31;--accent:#c25b64;--on-accent:#130f0d}
 .home{overflow-y:auto;padding-top:28px;padding-bottom:24px}
+.home .label{font:600 12px/1 var(--sans);letter-spacing:.16em;text-transform:uppercase}
 .home h1{font-size:46px;line-height:1.02;margin:10px 0 4px;font-weight:700}
 .home .set{color:var(--accent);font-style:italic;font-weight:400}
+.home .tab{font:500 13px var(--sans);padding:8px 12px}
+.home .btn{font-size:16px}
 .tabs{display:flex;flex-wrap:wrap;gap:6px;margin:18px 0 14px}
 .tab{font:600 16px var(--sans);padding:10px 14px;border-radius:99px;border:1px solid var(--line);background:none;color:var(--muted);cursor:pointer}
 .tab .today{color:var(--gold)}
@@ -46,7 +58,7 @@ button,.beads{-webkit-user-select:none;user-select:none;-webkit-touch-callout:no
 .mlist span{font-size:22px;font-weight:600}
 .begin{width:100%;margin-top:22px}
 
-/* ---------- prayer screen: header ---------- */
+/* ---------- prayer screen: rosary + mystery art ---------- */
 .run{padding-top:10px}
 .head{display:flex;gap:14px}
 .side{position:relative;flex:1;min-width:0}
@@ -56,7 +68,6 @@ button,.beads{-webkit-user-select:none;user-select:none;-webkit-touch-callout:no
 #where{position:absolute;left:8px;bottom:8px;z-index:2;padding:6px 10px;border-radius:99px;background:rgba(20,16,12,.6);color:#fff}
 #where:empty{display:none}
 
-/* ---------- rosary (small, and zoomed) ---------- */
 .beads{position:relative;flex:none;height:130px;aspect-ratio:320/450;cursor:pointer}
 .beads svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
 .hint{position:absolute;top:0;right:-6px;font:500 15px var(--sans);color:var(--muted)}
@@ -66,42 +77,43 @@ button,.beads{-webkit-user-select:none;user-select:none;-webkit-touch-callout:no
 .bead{fill:var(--off);stroke:var(--line);stroke-width:1;transition:fill .35s,stroke .35s}
 .bead.done{fill:var(--gold);stroke:var(--gold)}
 .bead.cur{fill:var(--accent);stroke:var(--accent)}
+/* small rosary: the current bead gets a halo; a whole decade glows thinly, with a bigger dot on the marker */
 .run:not(.zoom) .bead.cur{stroke-width:9}
-.run:not(.zoom) .bead.cur.grp{stroke-width:4}
+.run:not(.zoom) .bead.grp{stroke-width:4}
+.run:not(.zoom) .bead.m{fill:var(--accent);stroke:var(--accent)}
+.run:not(.zoom) .bead.mk{stroke-width:9}
+
+/* ---------- enlarged rosary ---------- */
 .zoom .head{flex:1;min-height:0}
-.zoom .side,.zoom .card,.zoom .dots{display:none}
+.zoom .side,.zoom .card,.zoom .dots,.zoom .hint{display:none}
 .zoom .beads{flex:1;height:auto;aspect-ratio:auto}
-.zoom .hint{display:none}
 .zoom .bead{transform:scale(1.25);transform-box:fill-box;transform-origin:center}
-.zoom .bead.cur{transform:scale(1.6)}
+.zoom .bead.cur,.zoom .bead.mk{transform:scale(1.6)}
+.zoom .bead.cur.grp{transform:scale(1.25)}
+.zoom .bead.pre{fill:var(--gold);stroke:var(--gold)}   /* beads up to the marker are lit one by one */
+.zoom .bead.mk{fill:var(--accent);stroke:var(--accent)}
 .zbar{display:none;align-items:center;gap:10px;margin:0 0 8px}
 .zoom .zbar{display:flex}
 .ztext{flex:1;min-width:0;font:600 17px/1.3 var(--sans);color:var(--muted)}
 .ztext b{display:block;color:var(--ink);font-weight:700}
 .zmin{flex:none;width:52px;height:52px;padding:0;display:flex;align-items:center;justify-content:center;border-radius:14px;border:1px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer}
 .zmin svg{width:28px;height:28px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.zoom .hint::before{content:"\2921"}
 
-/* ---------- card ---------- */
+/* ---------- prayer card ---------- */
 .card{flex:1;min-height:0;overflow-y:auto;margin-top:6px;padding:14px 16px;background:var(--card);border:1px solid var(--line);border-radius:18px}
 .phase{color:var(--gold)}
-.card h2{margin:4px 0 8px;font-size:calc(22px + var(--sz,0)*1px);line-height:1.1;font-weight:700}
+.card h2{margin:4px 0 8px;font-size:var(--tf);line-height:1.1;font-weight:700}
 .card h2.h2b{margin-top:16px}
-.prayer{margin:0;font-size:calc(19px + var(--sz,0)*2px);line-height:1.38;white-space:pre-line}
-.prayer.lg{line-height:1.38}
-.prayer.note{color:var(--muted)}
-
-/* mystery block: number, name (drop caps), description */
+.prayer{margin:0;font-size:var(--pf);line-height:1.38;white-space:pre-line}
+.prayer.note{font-style:italic;color:var(--muted)}
+.prayer.it{font-style:italic}
 .myst{margin:10px 0 14px;padding:2px 0 2px 12px;border-left:3px solid var(--accent);font-family:var(--sans)}
 .myst-num{margin:0 0 3px;font-size:16px;font-weight:600;line-height:1.3;letter-spacing:.02em;color:var(--muted)}
 .myst-name{margin:0 0 6px;font-size:17px;font-weight:600;line-height:1.4;letter-spacing:.07em;text-transform:uppercase}
 .myst-name .dc{font-size:1.45em;letter-spacing:.05em}
-.myst-desc{margin:8px 0 0;font-size:calc(22px + var(--sz,0)*2px);line-height:1.4}
-.myst.big{margin-top:6px}
-.myst.big .myst-num{font-size:18px}
-.myst.big .myst-name{font-size:22px}
+.myst-desc{margin:8px 0 0;font-size:var(--pf);line-height:1.38}
 
-/* ---------- bead bar + controls ---------- */
+/* ---------- dots (opening Hail Marys) and Back / Next ---------- */
 .dots{flex:none;display:flex;justify-content:center;gap:8px;padding:12px 4px 10px}
 .dots button{flex:1 1 0;max-width:30px;aspect-ratio:1;padding:0;border-radius:50%;background:var(--off);border:2px solid var(--line);cursor:pointer;transition:background .3s,transform .3s,border-color .3s}
 .dots .on{background:var(--gold);border-color:var(--gold)}
@@ -115,11 +127,11 @@ button,.beads{-webkit-user-select:none;user-select:none;-webkit-touch-callout:no
 .tabbar{flex:none;display:flex;gap:2px;background:var(--card);border-top:1px solid var(--line);padding:0 6px env(safe-area-inset-bottom,0px)}
 .tb{flex:1;min-height:58px;display:flex;align-items:center;justify-content:center;padding:6px 2px;border:0;background:none;color:var(--muted);cursor:pointer}
 .tb svg{width:30px;height:30px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-.tb .aa{font:700 25px/30px var(--sans);height:30px}
+.tb .aa{font:700 25px/30px var(--sans)}
 .tb[aria-current="page"]{color:var(--accent);box-shadow:inset 0 3px 0 var(--accent)}
 .tb[aria-expanded="true"]{color:var(--ink)}
 
-/* ---------- display panel ---------- */
+/* ---------- display panel (text size, colors) ---------- */
 .scrim{position:fixed;inset:0;z-index:20;background:rgba(0,0,0,.35)}
 .panel{position:fixed;z-index:21;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 68px);width:min(calc(100% - 28px),500px);padding:16px;border-radius:18px;background:var(--card);border:1px solid var(--line);box-shadow:0 10px 30px rgba(0,0,0,.3);font-family:var(--sans)}
 .prow{display:flex;align-items:center;gap:10px;margin:0 0 14px}
@@ -130,30 +142,21 @@ button,.beads{-webkit-user-select:none;user-select:none;-webkit-touch-callout:no
 .seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
 .seg button:disabled{opacity:.35}
 
-/* ---------- mysteries and closing prayers pages ---------- */
+/* ---------- Mysteries and Closing Prayers pages ---------- */
 .pg{overflow-y:auto;padding-top:26px;padding-bottom:24px}
 .pg h1{font-size:34px;line-height:1.1;margin:0 0 4px;font-weight:700}
 .pg .tabs{margin:14px 0 4px}
 .mcard{margin:16px 0 0;background:var(--card);border:1px solid var(--line);border-radius:18px;overflow:hidden}
 .mcard svg{display:block;width:100%;height:auto;aspect-ratio:280/130}
 .mb{padding:14px 16px 18px}
-.mb .label{display:block}
-.mb h2{margin:6px 0 8px;font-size:calc(24px + var(--sz,0)*1px);line-height:1.15;font-weight:700}
-.mb p{margin:0;font-size:calc(19px + var(--sz,0)*2px);line-height:1.5}
-.mb p.prayer{font-size:calc(19px + var(--sz,0)*2px);line-height:1.38}
-
-/* ---------- home page keeps the original V1 look ---------- */
-body.orig{--bg:#f4ecdc;--card:#fbf6ea;--ink:#2a1f14;--muted:#7a6a55;--gold:#9a6f1f;--off:#d8cbb0;--line:#bfae8c;--accent:#7b1e2b;--on-accent:#fbf6ea;--serif:"Cormorant Garamond",Georgia,"Times New Roman",serif;font-family:var(--serif)}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) body.orig{--bg:#130f0d;--card:#1d1713;--ink:#efe4cf;--muted:#a39278;--gold:#d6ac55;--off:#3a3028;--line:#4a3d31;--accent:#c25b64;--on-accent:#130f0d}}
-:root[data-theme="dark"] body.orig{--bg:#130f0d;--card:#1d1713;--ink:#efe4cf;--muted:#a39278;--gold:#d6ac55;--off:#3a3028;--line:#4a3d31;--accent:#c25b64;--on-accent:#130f0d}
-.home .label{font:600 12px/1 var(--sans);letter-spacing:.16em;text-transform:uppercase}
-.home .btn{font-size:16px}
-.home .tab{font:500 13px var(--sans);padding:8px 12px}
+.mb h2{margin:6px 0 8px;font-size:var(--tf);line-height:1.15;font-weight:700}
+.mb p{margin:0;font-size:var(--pf);line-height:1.38;white-space:pre-line}
 </style>
 </head>
 <body>
 <label class="hap" aria-hidden="true"><input type="checkbox" switch tabindex="-1" id="hap"></label>
 
+<!-- Home -->
 <main class="screen home" id="home">
   <div class="label" id="date"></div>
   <h1>Today's<br>mysteries are <span class="set" id="setName"></span></h1>
@@ -162,15 +165,19 @@ body.orig{--bg:#f4ecdc;--card:#fbf6ea;--ink:#2a1f14;--muted:#7a6a55;--gold:#9a6f
   <button class="btn begin" id="begin">Begin the Rosary</button>
 </main>
 
+<!-- Prayer screen -->
 <main class="screen run" id="run" hidden>
-  <div class="zbar"><div class="ztext">Tap a bead to jump there<b id="znow"></b></div><button class="zmin" id="minimize" aria-label="Minimize the rosary"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 10l7-7M14 10V4M14 10h6M10 14l-7 7M10 14v6M10 14H4"/></svg></button></div>
+  <div class="zbar">
+    <div class="ztext">Tap a bead to jump there<b id="znow"></b></div>
+    <button class="zmin" id="minimize" aria-label="Minimize the rosary"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 10l7-7M14 10V4M14 10h6M10 14l-7 7M10 14v6M10 14H4"/></svg></button>
+  </div>
   <div class="head">
-    <div class="beads" id="beads" role="button" tabindex="0" aria-label="Enlarge or shrink the rosary">
+    <div class="beads" id="beads" role="button" tabindex="0" aria-label="Enlarge the rosary">
       <svg id="svg" viewBox="0 0 320 450" aria-hidden="true"></svg>
       <span class="hint"></span>
     </div>
     <div class="side">
-      <div class="art" id="art"><svg id="artsvg" viewBox="0 0 280 130" aria-hidden="true"></svg></div>
+      <div class="art"><svg id="artsvg" viewBox="0 0 280 130" aria-hidden="true"></svg></div>
       <button class="x" id="exit" aria-label="Exit">&#10005;</button>
       <span class="label" id="where"></span>
     </div>
@@ -194,23 +201,28 @@ body.orig{--bg:#f4ecdc;--card:#fbf6ea;--ink:#2a1f14;--muted:#7a6a55;--gold:#9a6f
   </div>
 </main>
 
+<!-- Mysteries tab -->
 <main class="screen pg" id="mysteries" hidden>
   <h1 id="mtitle"></h1>
   <div class="tabs" id="mtabs" role="group" aria-label="Choose mysteries"></div>
   <div id="mcards"></div>
 </main>
 
+<!-- Closing Prayers tab -->
 <main class="screen pg" id="closing" hidden>
   <h1>Closing Prayers</h1>
   <div id="cprayers"></div>
 </main>
 
+<!-- Tab bar (icons only) -->
 <nav class="tabbar" aria-label="Sections">
   <button class="tb" data-v="rosary" aria-label="Rosary"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="5.5"/><path d="M12 13.5V22M8.5 17h7"/></svg></button>
   <button class="tb" data-v="mysteries" aria-label="Mysteries"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5.5C6.5 4 9.5 4.3 12 6c2.5-1.7 5.5-2 9-.5V19c-3.5-1.5-6.5-1.2-9 .5-2.5-1.7-5.5-2-9-.5z"/><path d="M12 6v13.5"/></svg></button>
   <button class="tb" data-v="closing" aria-label="Closing Prayers"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="M9 11h7M9 15h7"/></svg></button>
   <button class="tb" id="disp" aria-label="Display settings" aria-expanded="false" aria-controls="panel"><span class="aa" aria-hidden="true">Aa</span></button>
 </nav>
+
+<!-- Display panel -->
 <div class="scrim" id="scrim" hidden></div>
 <div class="panel" id="panel" role="dialog" aria-label="Display settings" hidden>
   <div class="prow"><span class="label">Text size</span><div class="seg"><button id="szm" aria-label="Smaller text">A&minus;</button><button id="szp" aria-label="Larger text">A+</button></div></div>
@@ -218,6 +230,9 @@ body.orig{--bg:#f4ecdc;--card:#fbf6ea;--ink:#2a1f14;--muted:#7a6a55;--gold:#9a6f
 </div>
 
 <script>
+/* =====================================================================
+   Data: prayers, mysteries, mystery art
+   ===================================================================== */
 const P={
 sign:"In the name of the Father,\nand of the Son,\nand of the Holy Spirit.\nAmen.",
 creed:"I believe in God, the Father almighty, Creator of heaven and earth, and in Jesus Christ, his only Son, our Lord, who was conceived by the Holy Spirit, born of the Virgin Mary, suffered under Pontius Pilate, was crucified, died and was buried; he descended into hell; on the third day he rose again from the dead; he ascended into heaven, and is seated at the right hand of God the Father almighty; from there he will come to judge the living and the dead. I believe in the Holy Spirit, the holy catholic Church, the communion of saints, the forgiveness of sins, the resurrection of the body, and life everlasting. Amen.",
@@ -255,11 +270,6 @@ Luminous:{days:[4],m:[
 ["The Transfiguration","From the cloud, there came a voice which said, “This is my Son, the Beloved; He enjoys my favour. Listen to Him.” (Mt 17:5)"],
 ["The Institution of the Eucharist","Now as they were eating, Jesus took bread and when He had said the blessing, He broke it and gave it to the disciples, ‘Take it and eat.’ He said, ‘This is My Body.’ (Mt 26:26)"]]}
 };
-const ORD=["1st","2nd","3rd","4th","5th"];
-const $=id=>document.getElementById(id);
-const run=$("run");
-const todaySet=Object.keys(SETS).find(k=>SETS[k].days.includes(new Date().getDay()));
-let cur=todaySet,steps=[],tapMap={},i=0,active=false,view="rosary",sz=0,theme="auto";
 
 /* ---------- mystery art (simple inline SVG scenes, 280 x 130) ---------- */
 const SKN="#efc9a1",BLU="#2f5fa8",CRM="#efe8d8";
@@ -327,15 +337,31 @@ bgs("#1f3558","#6b4a2b",102)+`<rect x="40" y="100" width="200" height="7" fill="
 /* opening and closing pages */
 const CROSSART=bgs("#dfe9f2","#c3d6b8",100)+`<circle cx="140" cy="52" r="42" fill="#fff6d4"/>`+rays(140,52,20,44,66,"#f2c14e",2.6,.6)+`<path d="M-30 106Q60 80 140 98Q220 80 310 106V140H-30Z" fill="#a9c49a"/>`+crs(140,14,90,"#8a5e36",11);
 
-/* ---------- home ---------- */
+/* =====================================================================
+   App
+   ===================================================================== */
+const ORD=["1st","2nd","3rd","4th","5th"];
+const $=id=>document.getElementById(id);
+const run=$("run");
+const todaySet=Object.keys(SETS).find(k=>SETS[k].days.includes(new Date().getDay()));
+
+let cur=todaySet;          // mystery set chosen on Home / Mysteries
+let steps=[],tapMap={};    // prayer pages, and bead id -> page index
+let i=0;                   // current page
+let mark=0;                // bead (1-10) last tapped on the Hail Mary page, 0 = none
+let active=false;          // a rosary is in progress
+let sz=0,theme="auto";     // display settings
+
+/* ---------- Home, Mysteries and Closing Prayers ---------- */
 $("date").textContent=new Date().toLocaleDateString("en-SG",{weekday:"long",day:"numeric",month:"long"});
+
 function fillTabs(el){
   el.innerHTML="";
   Object.keys(SETS).forEach(k=>{
     const b=document.createElement("button");
     b.className="tab";b.setAttribute("aria-pressed",k===cur);
     b.innerHTML=k+(k===todaySet?' <span class="today">&bull;</span>':"");
-    b.onclick=()=>{cur=k;renderHome();renderMyst()};
+    b.onclick=()=>{cur=k;renderHome();renderMysteries()};
     el.appendChild(b);
   });
 }
@@ -344,20 +370,19 @@ function renderHome(){
   fillTabs($("tabs"));
   $("mlist").innerHTML=SETS[cur].m.map((m,n)=>`<li><b>${n+1}</b><span>${m[0]}</span></li>`).join("");
 }
-
-function renderMyst(){
+function renderMysteries(){
   $("mtitle").textContent="The "+cur+" Mysteries";
   fillTabs($("mtabs"));
   $("mcards").innerHTML=SETS[cur].m.map((m,n)=>`<article class="mcard"><svg class="mimg" viewBox="0 0 280 130" role="img" aria-label="${m[0]}">${ART[cur][n]}</svg><div class="mb"><div class="label">${ORD[n]} ${cur} Mystery</div><h2>${m[0]}</h2><p>${m[1]}</p></div></article>`).join("");
 }
 function renderClosing(){
-  $("cprayers").innerHTML=[["Hail, Holy Queen",P.queen],["Closing Prayer",P.close],["Memorare",P.memorare]].map(([t,x])=>`<article class="mcard"><div class="mb"><h2>${t}</h2><p class="prayer">${x}</p></div></article>`).join("");
+  $("cprayers").innerHTML=[["Hail, Holy Queen",P.queen],["Closing Prayer",P.close],["Memorare",P.memorare]].map(([t,x])=>`<article class="mcard"><div class="mb"><h2>${t}</h2><p>${x}</p></div></article>`).join("");
 }
 
 /* ---------- rosary beads ---------- */
 const NS="http://www.w3.org/2000/svg",CX=160,CY=140,R=118;
-const seq=["c","t0","t1","t2","t3","t4"],pos={},B={};
-const pt={c:[CX,412],t0:[CX,374],t1:[CX,346],t2:[CX,326],t3:[CX,306],t4:[CX,284]};
+const seq=["c","t0","t1","t2","t3","t4"],pos={},B={};   // bead ids in prayer order, their index, their SVG elements
+const pt={c:[CX,412],t0:[CX,374],t1:[CX,346],t2:[CX,326],t3:[CX,306],t4:[CX,284]};   // bead positions
 for(let k=0;k<55;k++){
   seq.push("l"+k);
   const a=(90-k*360/55)*Math.PI/180;
@@ -365,107 +390,35 @@ for(let k=0;k<55;k++){
 }
 seq.forEach((id,n)=>pos[id]=n);
 const isBig=id=>id==="t0"||id==="t4"||(id[0]==="l"&&+id.slice(1)%11===0);
-const mk=(tag,attrs)=>{const e=document.createElementNS(NS,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);$("svg").appendChild(e);return e};
+const svgEl=(tag,attrs)=>{const e=document.createElementNS(NS,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);$("svg").appendChild(e);return e};
+
 function drawBeads(){
   $("svg").innerHTML="";
-  mk("circle",{cx:CX,cy:CY,r:R,class:"str"});
-  mk("line",{x1:CX,y1:CY+R,x2:CX,y2:400,class:"str"});
-  mk("line",{x1:CX,y1:394,x2:CX,y2:432,class:"cross"});
-  mk("line",{x1:CX-12,y1:405,x2:CX+12,y2:405,class:"cross"});
+  svgEl("circle",{cx:CX,cy:CY,r:R,class:"str"});
+  svgEl("line",{x1:CX,y1:CY+R,x2:CX,y2:400,class:"str"});
+  svgEl("line",{x1:CX,y1:394,x2:CX,y2:432,class:"cross"});
+  svgEl("line",{x1:CX-12,y1:405,x2:CX+12,y2:405,class:"cross"});
   seq.slice(1).forEach(id=>{
     const [x,y]=pt[id];
-    B[id]=mk("circle",{cx:x,cy:y,r:id==="l0"?10:isBig(id)?7.5:5,class:"bead"});
+    B[id]=svgEl("circle",{cx:x,cy:y,r:id==="l0"?10:isBig(id)?7.5:5,class:"bead"});
   });
 }
+
+/* Earlier beads are "done", the current one is "cur". On a decade's Hail Mary page all ten beads
+   glow together until a bead is tapped: then beads up to it are "pre", it is "mk", the rest "post"
+   (the enlarged rosary lights them one by one; the small one keeps the whole decade lit). */
 function paint(st){
-  const p=st.done??pos[st.bead],hi=st.hi||[st.bead],grp=hi.length>1;
-  seq.slice(1).forEach(id=>B[id].setAttribute("class","bead"+(pos[id]<p?" done":"")+(hi.includes(id)?" cur"+(grp?" grp":""):"")));
+  const hi=st.hi,base=st.done??pos[hi?hi[0]:st.bead];
+  seq.slice(1).forEach(id=>{
+    let c="bead"+(pos[id]<base?" done":"");
+    if(hi){
+      const n=hi.indexOf(id)+1;
+      if(n)c+=mark?" grp m "+(n<mark?"pre":n===mark?"mk":"post"):" cur grp";
+    }else if(id===st.bead)c+=" cur";
+    B[id].setAttribute("class",c);
+  });
 }
 
-/* ---------- prayer steps ---------- */
-function build(){
-  const S=SETS[cur].m;
-  steps=[];tapMap={};
-  const add=o=>steps.push(o);
-  const closing=(title,text,o)=>add({phase:"Closing",title,text,bead:"l0",done:seq.length,...o});
-  add({phase:"Opening",title:"Sign of the Cross",text:P.sign,bead:"c"});
-  add({phase:"Opening",title:"Apostles' Creed",text:P.creed,bead:"c",lg:true});
-  add({phase:"Opening",title:"Our Father",text:P.our,bead:"t0"});
-  ["Faith","Hope","Charity"].forEach((v,n)=>add({phase:"Opening",title:"Hail Mary",sub:v,text:P.hail,bead:"t"+(n+1),count:n+1,total:3}));
-  add({phase:"Opening",title:"Glory Be",text:P.glory,bead:"t4"});
-  for(let d=0;d<5;d++){
-    const m={n:ORD[d]+" "+cur+" Mystery",name:S[d][0],desc:S[d][1]},phase="",last="l"+(d*11+10),set=cur;
-    add({phase,title:"",text:"",bead:"l"+d*11,m,set,dec:d,intro:true});
-    add({phase,title:"Our Father",text:P.our,bead:"l"+d*11,m,set,dec:d});
-    add({phase,title:"Hail Mary",sub:"10 times",text:P.hail,title2:"Glory Be",text2:P.glory,bead:"l"+(d*11+1),hi:Array.from({length:10},(_,h)=>"l"+(d*11+h+1)),m,set,dec:d});
-    add({phase,title:"Fatima Prayer",text:P.fatima,bead:last,m,set,dec:d});
-  }
-  closing("Hail, Holy Queen",P.queen,{lg:true});
-  closing("Closing Prayer",P.close,{lg:true});
-  closing("Memorare",P.memorare,{lg:true});
-  closing("Personal Intentions","(Take a moment to offer your personal intentions in your own words.)",{lg:true,note:true});
-  add({phase:"Closing",title:"Sign of the Cross",text:P.sign,bead:"c",done:seq.length,end:true});
-  steps.forEach((x,n)=>(x.hi||[x.bead]).forEach(b=>{if(!(b in tapMap))tapMap[b]=n}));
-}
-
-function show(){
-  const st=steps[i],m=st.m,hm=!!st.count;
-  $("phase").textContent=st.phase;$("phase").hidden=!st.phase;
-  $("where").textContent=hm?"Hail Mary "+st.count+" of "+(st.total||10):"";
-  $("title").textContent=st.title+(st.sub?" ("+st.sub+")":"");
-  $("text").className="prayer"+(st.lg?" lg":"")+(st.note?" note":"");
-  $("text").textContent=st.text;
-  $("title").hidden=!st.title;$("text").hidden=!st.text;
-  $("title2").hidden=$("text2").hidden=!st.title2;
-  if(st.title2){$("title2").textContent=st.title2;$("text2").textContent=st.text2}
-
-  $("myst").hidden=!m;
-  if(m){
-    $("mnum").textContent=m.n;
-    $("mname").innerHTML=m.name.split(" ").map(w=>'<span class="dc">'+w[0]+"</span>"+w.slice(1)).join(" ");
-    $("mdesc").textContent=m.desc;
-    $("mdesc").hidden=!st.intro;
-    $("myst").classList.toggle("big",!!st.intro);
-  }
-
-  const dots=$("dots"),tot=st.total||0;
-  dots.hidden=!tot;dots.innerHTML="";
-  for(let k=1;k<=tot;k++){
-    const d=document.createElement("button");
-    d.setAttribute("aria-label","Hail Mary "+k);
-    d.className=hm?(k<st.count?"on":k===st.count?"now":""):(st.intro?"":"on");
-    d.onclick=()=>jump(k);
-    dots.appendChild(d);
-  }
-
-  $("artsvg").innerHTML=m?ART[st.set][st.dec]:CROSSART;
-  $("znow").textContent=(m?m.n+" \u00b7 ":"")+(st.title?st.title+(st.sub?" ("+st.sub+")":""):"The mystery");
-  $("back").disabled=i===0;
-  $("next").textContent=st.end?"Amen — Finish":(st.intro?"Next: Our Father":st.title2?"Next: Fatima Prayer":"Next");
-  $("card").scrollTop=0;
-  paint(st);
-}
-
-/* ---------- navigation ---------- */
-function go(n){
-  if(n>=steps.length)return exit();
-  i=Math.max(0,n);show();
-}
-function jump(k){
-  const c=steps[i],t=steps.findIndex(x=>x.title==="Hail Mary"&&x.count===k&&x.m===c.m&&x.total===c.total);
-  if(t>=0){haptic();go(t)}
-}
-function start(){build();i=0;active=true;drawBeads();setView("rosary");show()}
-function exit(){run.classList.remove("zoom");active=false;setView("rosary")}
-function setView(v){
-  view=v;
-  $("home").hidden=!(v==="rosary"&&!active);
-  run.hidden=!(v==="rosary"&&active);
-  $("mysteries").hidden=v!=="mysteries";
-  $("closing").hidden=v!=="closing";
-  document.body.classList.toggle("orig",!$("home").hidden);
-  document.querySelectorAll(".tb[data-v]").forEach(b=>b.setAttribute("aria-current",b.dataset.v===v?"page":"false"));
-}
 function beadAt(e){
   const s=$("svg"),m=s.getScreenCTM();
   if(!m)return null;
@@ -475,8 +428,101 @@ function beadAt(e){
   for(const id in pt){const d=Math.hypot(pt[id][0]-q.x,pt[id][1]-q.y);if(d<bd){bd=d;best=id}}
   return best;
 }
-function store(k,v){try{localStorage.setItem("rosary."+k,v)}catch(e){}}
-function load(k){try{return localStorage.getItem("rosary."+k)}catch(e){return null}}
+function tapBead(id){
+  const n=tapMap[id];
+  if(n==null)return;
+  haptic();
+  if(n!==i)go(n);
+  mark=steps[n].hi?steps[n].hi.indexOf(id)+1:0;
+  paint(steps[i]);
+}
+
+/* ---------- prayer pages ---------- */
+function build(){
+  const S=SETS[cur].m;
+  steps=[];tapMap={};
+  const add=o=>steps.push(o);
+  const closing=(title,text,o)=>add({phase:"Closing",title,text,bead:"l0",done:seq.length,...o});
+  add({phase:"Opening",title:"Sign of the Cross",text:P.sign,bead:"c",it:true});
+  add({phase:"Opening",title:"Apostles' Creed",text:P.creed,bead:"c"});
+  add({phase:"Opening",title:"Our Father",text:P.our,bead:"t0"});
+  ["Faith","Hope","Charity"].forEach((v,n)=>add({phase:"Opening",title:"Hail Mary",sub:v,text:P.hail,bead:"t"+(n+1),count:n+1,total:3}));
+  add({phase:"Opening",title:"Glory Be",text:P.glory,bead:"t4"});
+  for(let d=0;d<5;d++){
+    const m={n:ORD[d]+" "+cur+" Mystery",name:S[d][0],desc:S[d][1]},phase="",set=cur;
+    add({phase,title:"",text:"",bead:"l"+d*11,m,set,dec:d,intro:true});
+    add({phase,title:"Our Father",text:P.our,bead:"l"+d*11,m,set,dec:d});
+    add({phase,title:"Hail Mary",sub:"10 times",text:P.hail,title2:"Glory Be",text2:P.glory,bead:"l"+(d*11+1),hi:Array.from({length:10},(_,h)=>"l"+(d*11+h+1)),m,set,dec:d});
+    add({phase,title:"Fatima Prayer",text:P.fatima,bead:"l"+(d*11+10),m,set,dec:d});
+  }
+  closing("Hail, Holy Queen",P.queen);
+  closing("Closing Prayer",P.close);
+  closing("Memorare",P.memorare);
+  closing("Personal Intentions","(Take a moment to offer your personal intentions in your own words.)",{note:true});
+  add({phase:"Closing",title:"Sign of the Cross",text:P.sign,bead:"c",done:seq.length,end:true,it:true});
+  // bead -> first page that uses it (a decade's small beads all land on its Hail Mary page)
+  steps.forEach((x,n)=>(x.hi||[x.bead]).forEach(b=>{if(!(b in tapMap))tapMap[b]=n}));
+}
+
+function show(){
+  const st=steps[i],m=st.m,label=st.title+(st.sub?" ("+st.sub+")":"");
+  $("phase").textContent=st.phase;$("phase").hidden=!st.phase;
+  $("where").textContent=st.count?"Hail Mary "+st.count+" of "+st.total:"";
+  $("title").textContent=label;$("title").hidden=!st.title;
+  $("text").className="prayer"+(st.note?" note":"")+(st.it?" it":"");
+  $("text").textContent=st.text;$("text").hidden=!st.text;
+  $("title2").hidden=$("text2").hidden=!st.title2;
+  if(st.title2){$("title2").textContent=st.title2;$("text2").textContent=st.text2}
+
+  $("myst").hidden=!m;
+  if(m){
+    $("mnum").textContent=m.n;
+    $("mname").innerHTML=m.name.split(" ").map(w=>'<span class="dc">'+w[0]+"</span>"+w.slice(1)).join(" ");
+    $("mdesc").textContent=m.desc;
+    $("mdesc").hidden=!st.intro;
+  }
+
+  const dots=$("dots"),tot=st.total||0;   // only the three opening Hail Marys are counted
+  dots.hidden=!tot;dots.innerHTML="";
+  for(let k=1;k<=tot;k++){
+    const b=document.createElement("button");
+    b.setAttribute("aria-label","Hail Mary "+k);
+    b.className=k<st.count?"on":k===st.count?"now":"";
+    b.onclick=()=>{haptic();go(steps.findIndex(x=>x.count===k))};
+    dots.appendChild(b);
+  }
+
+  $("artsvg").innerHTML=m?ART[st.set][st.dec]:CROSSART;
+  $("znow").textContent=(m?m.n+" · ":"")+(st.title?label:"The mystery");
+  $("back").disabled=i===0;
+  $("next").textContent=st.end?"Amen — Finish":st.intro?"Next: Our Father":st.title2?"Next: Fatima Prayer":"Next";
+  $("card").scrollTop=0;
+  paint(st);
+}
+
+/* ---------- navigation and views ---------- */
+function go(n){
+  if(n>=steps.length)return exit();
+  i=Math.max(0,n);mark=0;show();
+}
+function start(){build();i=0;mark=0;active=true;drawBeads();setView("rosary");show()}
+function exit(){run.classList.remove("zoom");active=false;setView("rosary")}
+function setView(v){
+  $("home").hidden=!(v==="rosary"&&!active);
+  run.hidden=!(v==="rosary"&&active);
+  $("mysteries").hidden=v!=="mysteries";
+  $("closing").hidden=v!=="closing";
+  document.body.classList.toggle("orig",!$("home").hidden);
+  document.querySelectorAll(".tb[data-v]").forEach(b=>b.setAttribute("aria-current",b.dataset.v===v?"page":"false"));
+}
+function haptic(){
+  try{if(navigator.vibrate)navigator.vibrate(12)}catch(e){}
+  try{$("hap").click()}catch(e){}
+}
+
+/* ---------- display settings (text size, colors), remembered on the phone ---------- */
+const saveSetting=(k,v)=>{try{localStorage.setItem("rosary."+k,v)}catch(e){}};
+const readSetting=k=>{try{return localStorage.getItem("rosary."+k)}catch(e){return null}};
 function applySettings(){
   const r=document.documentElement;
   r.style.setProperty("--sz",sz);
@@ -489,22 +535,18 @@ function togglePanel(){
   const open=$("panel").hidden;
   $("panel").hidden=!open;$("scrim").hidden=!open;$("disp").setAttribute("aria-expanded",open);
 }
-function haptic(){
-  try{if(navigator.vibrate)navigator.vibrate(12)}catch(e){}
-  try{$("hap").click()}catch(e){}
-}
 
 /* ---------- events ---------- */
 $("begin").onclick=start;
 $("exit").onclick=exit;
 $("next").onclick=()=>{haptic();go(i+1)};
 $("back").onclick=()=>{haptic();go(i-1)};
+
+// the rosary enlarges when tapped and shrinks only with the minimize button; beads are tappable while enlarged
 let zoomAt=0;
 $("beads").onclick=e=>{
   if(!run.classList.contains("zoom")){run.classList.add("zoom");zoomAt=Date.now();return}
-  if(Date.now()-zoomAt<450)return;
-  const id=beadAt(e);
-  if(id!=null&&tapMap[id]!=null){haptic();go(tapMap[id])}
+  if(Date.now()-zoomAt>450)tapBead(beadAt(e));   // ignore the second tap of a double tap
 };
 $("minimize").onclick=()=>run.classList.remove("zoom");
 $("beads").onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();run.classList.add("zoom")}};
@@ -515,20 +557,29 @@ document.addEventListener("keydown",e=>{
   else if(e.key==="ArrowRight"||(e.key===" "&&!onControl)){e.preventDefault();go(i+1)}
   else if(e.key==="ArrowLeft")go(i-1);
 });
+
 document.querySelectorAll(".tb[data-v]").forEach(b=>b.onclick=()=>{closePanel();setView(b.dataset.v)});
 $("disp").onclick=togglePanel;
 $("scrim").onclick=closePanel;
-$("szm").onclick=()=>{sz=Math.max(-2,sz-1);store("sz",sz);applySettings()};
-$("szp").onclick=()=>{sz=Math.min(5,sz+1);store("sz",sz);applySettings()};
-document.querySelectorAll("#themeSeg button").forEach(b=>b.onclick=()=>{theme=b.dataset.t;store("theme",theme);applySettings()});
+$("szm").onclick=()=>{sz=Math.max(-2,sz-1);saveSetting("sz",sz);applySettings()};
+$("szp").onclick=()=>{sz=Math.min(5,sz+1);saveSetting("sz",sz);applySettings()};
+document.querySelectorAll("#themeSeg button").forEach(b=>b.onclick=()=>{theme=b.dataset.t;saveSetting("theme",theme);applySettings()});
+
+// no page zoom on double tap (buttons and the rosary are left alone)
 let lastTap=0;
 document.addEventListener("touchend",e=>{
   const n=Date.now();
   if(n-lastTap<350&&!(e.target.closest&&e.target.closest("button,.beads")))e.preventDefault();
   lastTap=n;
 },{passive:false});
-renderHome();renderMyst();renderClosing();
-{const a=parseInt(load("sz"),10),t=load("theme");if(a>=-2&&a<=5)sz=a;if(t==="light"||t==="dark")theme=t}
+
+/* ---------- start ---------- */
+{
+  const a=parseInt(readSetting("sz"),10),t=readSetting("theme");
+  if(a>=-2&&a<=5)sz=a;
+  if(t==="light"||t==="dark")theme=t;
+}
+renderHome();renderMysteries();renderClosing();
 applySettings();setView("rosary");
 </script>
 </body>
