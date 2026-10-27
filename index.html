@@ -235,7 +235,7 @@ body.orig{--bg:#f4ecdc;--card:#fbf6ea;--ink:#2a1f14;--muted:#7a6a55;--gold:#9a6f
    ===================================================================== */
 const P={
 sign:"In the name of the Father,\nand of the Son,\nand of the Holy Spirit.\nAmen.",
-creed:"I believe in God, the Father almighty, \nCreator of heaven and earth, \nand in Jesus Christ, his only Son, our Lord, \nwho was conceived by the Holy Spirit, \nborn of the Virgin Mary, suffered under Pontius Pilate, \nwas crucified, died and was buried; \nhe descended into hell; \non the third day he rose again from the dead; \nhe ascended into heaven, \nand is seated at the right hand \nof God the Father almighty; \nfrom there he will come to judge the living and the dead. \nI believe in the Holy Spirit, \nthe holy catholic Church, \nthe communion of saints, \nthe forgiveness of sins, \nthe resurrection of the body, and life everlasting. \nAmen.",
+creed:"I believe in God, the Father almighty, \nCreator of heaven and earth, \nand in Jesus Christ, his only Son, our Lord, \nwho was conceived by the Holy Spirit, \nborn of the Virgin Mary, \nsuffered under Pontius Pilate, \nwas crucified, died and was buried; \nhe descended into hell; \non the third day he rose again from the dead; \nhe ascended into heaven, \nand is seated at the right hand \nof God the Father almighty; \nfrom there he will come to judge the living and the dead. \nI believe in the Holy Spirit, \nthe holy catholic Church, \nthe communion of saints, \nthe forgiveness of sins, \nthe resurrection of the body, \nand life everlasting. \nAmen.",
 our:"Our Father, who art in heaven, \nhallowed be thy name; thy kingdom come; \nthy will be done on earth as it is in heaven.\n\nGive us this day our daily bread; \nand forgive us our trespasses \nas we forgive those who trespass against us; \nand lead us not into temptation, \nbut deliver us from evil. \nAmen.",
 hail:"Hail Mary, full of grace, the Lord is with thee; blessed art thou amongst women, and blessed is the fruit of thy womb, Jesus.\n\nHoly Mary, Mother of God, pray for us sinners, now and at the hour of our death. Amen.",
 glory:"Glory be to the Father, and to the Son, \nand to the Holy Spirit.\n\nAs it was in the beginning, is now, and ever shall be, world without end. Amen.",
@@ -452,7 +452,7 @@ function build(){
     const m={n:ORD[d]+" "+cur+" Mystery",name:S[d][0],desc:S[d][1]},phase="",set=cur;
     add({phase,title:"",text:"",bead:"l"+d*11,m,set,dec:d,intro:true});
     add({phase,title:"Our Father",text:P.our,bead:"l"+d*11,m,set,dec:d});
-    add({phase,title:"Hail Mary",sub:"10 times",text:P.hail,title2:"Glory Be",text2:P.glory,bead:"l"+(d*11+1),hi:Array.from({length:10},(_,h)=>"l"+(d*11+h+1)),m,set,dec:d});
+    add({phase,title:"Hail Mary",sub:"10 times",text:P.hail,title2:"<br>Glory Be",text2:P.glory,bead:"l"+(d*11+1),hi:Array.from({length:10},(_,h)=>"l"+(d*11+h+1)),m,set,dec:d});
     add({phase,title:"Fatima Prayer",text:P.fatima,bead:"l"+(d*11+10),m,set,dec:d});
   }
   closing("Hail, Holy Queen",P.queen);
