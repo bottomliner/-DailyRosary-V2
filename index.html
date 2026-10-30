@@ -452,7 +452,7 @@ function build(){
     const m={n:ORD[d]+" "+cur+" Mystery",name:S[d][0],desc:S[d][1]},phase="",set=cur;
     add({phase,title:"",text:"",bead:"l"+d*11,m,set,dec:d,intro:true});
     add({phase,title:"Our Father",text:P.our,bead:"l"+d*11,m,set,dec:d});
-    add({phase,title:"Hail Mary",sub:"10 times",text:P.hail,title2:\n"Glory Be",text2:P.glory,bead:"l"+(d*11+1),hi:Array.from({length:10},(_,h)=>"l"+(d*11+h+1)),m,set,dec:d});
+    add({phase,title:"Hail Mary",sub:"10 times",text:P.hail,title2:"Glory Be",text2:P.glory,bead:"l"+(d*11+1),hi:Array.from({length:10},(_,h)=>"l"+(d*11+h+1)),m,set,dec:d});
     add({phase,title:"Fatima Prayer",text:P.fatima,bead:"l"+(d*11+10),m,set,dec:d});
   }
   closing("Hail, Holy Queen",P.queen);
